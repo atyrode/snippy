@@ -14,10 +14,12 @@ CHARSETS = {
 
 BOOL_COMBINATIONS = [
     # Generates a dict with the format charset_type: bool
-    {key: value for key, value in zip(CHARSETS.keys(), combination)}
-    # for each charset
+    {key: value for key, value
+     # with each charset type
+     in zip(CHARSETS.keys(), combination)}
+    # for each possible combination
     for combination
-    # for each combination of True/False
+    # of each possible state for it (True or False)
     in product([True, False], repeat=len(CHARSETS))
 ]
 
@@ -45,7 +47,7 @@ def test_charset():
         
         # If the produced charset is empty, (all properties set to false)
         # the object should raise a ValueError
-        if all(combination.values()) is False:
+        if not any(combination.values()) is True:
             with pytest.raises(ValueError):
                 URLCharset(**combination)
         else:
