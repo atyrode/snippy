@@ -33,18 +33,14 @@ class URLCharset():
         for value in self.__dict__.values():
             if type(value) is not bool: # <- 'is' proves intent, '==' wouldn't
                 raise TypeError("URLCharset arguments must be of type boolean")
+
+        comp: str = str()
+        comp += string.digits           if self.numeric         == True else ''
+        comp += string.ascii_lowercase  if self.lowercase_ascii == True else ''
+        comp += string.ascii_uppercase  if self.uppercase_ascii == True else ''
+        comp += "~_-."                  if self.special         == True else ''
         
-        comp = ''
-        if self.numeric is True:
-            comp += string.digits
-        if self.lowercase_ascii is True:
-            comp += string.ascii_lowercase
-        if self.uppercase_ascii is True:
-            comp += string.ascii_uppercase
-        if self.special is True:
-            comp += "~_-."
-            
-        if comp == '': # <- can't use 'is' due to bpo-34850 (CPython caching)
+        if len(comp) == 0:
             raise ValueError("At least one charset type must be True for URLCharset")
 
         # See PEP 557: https://peps.python.org/pep-0557/#frozen-instances
