@@ -13,10 +13,10 @@ class URLCharset():
         uppercase_ascii (bool): Adds [A-Z] to the charset.
         special (bool): Adds URL-valid special characters [~_-.] to the charset.
     
-    Usage:
-        custom_charset = URLCharset(numeric=True, lowercase_ascii=True)
-        print(custom_charset)
-        $ 0123456789abcdefghijklmnopqrstuvwxyz
+    Example:
+        >>> custom_charset = URLCharset(numeric=True, lowercase_ascii=True, uppercase_ascii=True, special=True)
+        >>> print(custom_charset)
+        $ 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~_-.
     """
     
     numeric: bool
@@ -29,7 +29,8 @@ class URLCharset():
     def __post_init__(self):
         """Sets the charset attribute after the object's initialization due to
         the immutability of the class. See PEP 557#frozen-instances:
-        https://peps.python.org/pep-0557/#frozen-instances"""
+        https://peps.python.org/pep-0557/#frozen-instances
+        """
         
         included = (
             string.digits           if self.numeric         == True else '',
@@ -44,8 +45,11 @@ class URLCharset():
     def __getitem__(self, index: Any) -> str:
         return self.charset[index]
     
+    def __getattr__ (self, name: str) -> Any:
+        return getattr(self.charset, name)
+    
     def __len__(self) -> int:
         return len(self.charset)
-        
+
     def __str__(self) -> str:
         return self.charset
