@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import string
+from typing import Any
 
 @dataclass(frozen=True) # Makes the class immutable
 class URLCharset():
@@ -39,6 +40,12 @@ class URLCharset():
         
         # Join the included character sets and define the 'charset' attribute
         object.__setattr__(self, 'charset', ''.join(included))
-
+        
+    def __getitem__(self, index: Any) -> str:
+        return self.charset[index]
+    
+    def __len__(self) -> int:
+        return len(self.charset)
+        
     def __str__(self) -> str:
         return self.charset
