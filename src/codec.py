@@ -4,14 +4,13 @@ from typing import Any
 
 @dataclass(frozen=True) # Makes the class immutable
 class URLCharset():
-    """String representation of a character set ready to be used
-    for a codec, and that is URL-safe.
+    """Immutable string that represents an URL-safe character set.
     
     Args:
-        numeric (bool): Adds [0-9] to the charset.
-        lowercase_ascii (bool): Adds [a-z] to the charset.
-        uppercase_ascii (bool): Adds [A-Z] to the charset.
-        special (bool): Adds URL-valid special characters [~_-.] to the charset.
+        numeric (bool): Defines if it contains [0-9]
+        lowercase_ascii (bool): Defines if it contains  [a-z]
+        uppercase_ascii (bool): Defines if it contains  [A-Z]
+        special (bool): Defines if it contains [~_-.]
     
     Example:
         >>> custom_charset = URLCharset(numeric=True, lowercase_ascii=True, uppercase_ascii=True, special=True)
@@ -24,24 +23,36 @@ class URLCharset():
     uppercase_ascii: bool
     special: bool
     
-    charset: str = field(init=False, repr=False, default_factory=str)
+    # Excluded of __repr__ since it actually represents the computation of __repr__
+    charset: str = field(init=False, repr=False)
     
     def __post_init__(self):
-        """Sets the charset attribute after the object's initialization due to
-        the immutability of the class. See PEP 557#frozen-instances:
-        https://peps.python.org/pep-0557/#frozen-instances
-        """
+        """Enforces clear intent of its composition and sets it as an 
+        instance attribute"""
         
-        included = (
-            string.digits           if self.numeric         == True else '',
-            string.ascii_lowercase  if self.lowercase_ascii == True else '',
-            string.ascii_uppercase  if self.uppercase_ascii == True else '',
-            "~_-."                  if self.special         == True else '',
-        )
+        for value in self.__dict__.values():
+            if type(value) is not bool: # <- 'is' proves intent, '==' wouldn't
+                raise TypeError("URLCharset arguments must be of type boolean")
         
-        # Join the included character sets and define the 'charset' attribute
-        object.__setattr__(self, 'charset', ''.join(included))
-        
+        comp = ''
+        if self.numeric is True:
+            comp += string.digits
+        if self.lowercase_ascii is True:
+            comp += string.ascii_lowercase
+        if self.uppercase_ascii is True:
+            comp += string.ascii_uppercase
+        if self.special is True:
+            comp += "~_-."
+            
+        if comp == '': # <- can't use 'is' due to bpo-34850 (CPython caching)
+            raise ValueError("At least one charset type must be True for URLCharset")
+
+        # See PEP 557: https://peps.python.org/pep-0557/#frozen-instances
+        object.__setattr__(self, 'charset', comp)
+    
+    
+    # The redefinition of the dunders below helps URLCharset to behave 
+    # like a string while keeping the immutability of the character set.
     def __getitem__(self, index: Any) -> str:
         return self.charset[index]
     

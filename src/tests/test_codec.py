@@ -35,16 +35,21 @@ def match_charset(combination: dict) -> str:
         if value]
     )
 
-def test_charset_empty():
+def test_charset_wrong_arg_format():
     with pytest.raises(TypeError):
         URLCharset()
         
 def test_charset():
     for combination in BOOL_COMBINATIONS:
         charset = match_charset(combination)
-        custom_charset = URLCharset(**combination)
-    
-        assert str(custom_charset) == charset
+        
+        # If the produced charset is empty, (all properties set to false)
+        # the object should raise a ValueError
+        if all(combination.values()) is False:
+            with pytest.raises(ValueError):
+                URLCharset(**combination)
+        else:
+            assert charset == str(URLCharset(**combination))
         
 def test_charset_immutable():
     custom_charset = URLCharset(**BOOL_COMBINATIONS[0])
@@ -58,3 +63,7 @@ def test_charset_repr():
 def test_charset_post_init():
     custom_charset = URLCharset(**BOOL_COMBINATIONS[0])
     assert custom_charset.charset == str(custom_charset)
+    
+def test_charset_wrong_type():
+    with pytest.raises(TypeError):
+        URLCharset(numeric="test", lowercase_ascii=True, uppercase_ascii=True, special=True)
