@@ -32,11 +32,8 @@ class Obfuscator():
     @property
     def _scrambled_charset(self) -> str:
         """Scramble the charset based on the hashed passphrase"""
-        
-        # Hash the passphrase to create a more unpredictable seed
-        hashed_passphrase = hashlib.sha256(self.passphrase.encode()).hexdigest()
-        
-        random.seed(hashed_passphrase)
+
+        random.seed(self.passphrase)
         original_charset = list(self.charset)
         scrambled_charset = original_charset.copy()
         random.shuffle(scrambled_charset)
@@ -54,15 +51,6 @@ class Obfuscator():
         ) % self._base # <- Ensures wrap-around within the (scrambled) charset
         
         return shift
-    
-    @property
-    def _scrambled_adjusted(self) -> str:
-        """Scramble the charset and adjust it based on the shift value"""
-        
-        scrambled_charset = self._scrambled_charset
-        shift = self._shift
-        
-        return scrambled_charset[shift:] + scrambled_charset[:shift]
         
     def _translate(self, input: str, shift: int) -> str:
         """Applies a translation to a string based on the codec's charset."""
@@ -88,3 +76,30 @@ class Obfuscator():
         """Reverse the passphrase-based obfuscation on the input."""
         
         return self._translate(input, -self._shift)
+    
+    
+charset = URLCharset(numeric=True, lowercase_ascii=True, uppercase_ascii=True, special=False)
+obfuscator = Obfuscator(charset, "snippy")
+print(f"Charset: {obfuscator.charset}")
+print(f"Scrambled charset: {obfuscator._scrambled_charset}")
+print(f"Passphrase: {obfuscator.passphrase}")
+print("-" * 80)
+
+source = "00001"
+obfuscated = obfuscator.transform(source)
+deobfuscated = obfuscator.restore(obfuscated)
+
+print(f"Source: {source}")
+print(f"Obfuscated: {obfuscated}")
+print(f"Deobfuscated: {deobfuscated}")
+print("=" * 20)
+
+source = "00002"
+obfuscated = obfuscator.transform(source)
+deobfuscated = obfuscator.restore(obfuscated)
+
+print(f"Source: {source}")
+print(f"Obfuscated: {obfuscated}")
+print(f"Deobfuscated: {deobfuscated}")
+
+print("=" * 20)
