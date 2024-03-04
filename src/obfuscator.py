@@ -88,27 +88,3 @@ class Obfuscator():
         """Reverse the passphrase-based obfuscation on the input."""
         
         return self._translate(input, -self._shift)
-    
-    
-charset = URLCharset(numeric=True, lowercase_ascii=True, uppercase_ascii=True, special=False)
-obfuscator = Obfuscator(charset, "snippy")
-print(f"Charset: {obfuscator.charset}")
-print(f"Scrambled charset: {obfuscator._scrambled_charset}")
-print(f"Passphrase: {obfuscator.passphrase}")
-print("-" * 80)
-source = 1
-obfuscated = obfuscator.transform(source)
-deobfuscated = obfuscator.restore(obfuscated)
-
-print(f"Source: {source}")
-print(f"Obfuscated: {obfuscated}")
-print(f"Deobfuscated: {deobfuscated}")
-print("=" * 20)
-
-source = 2
-obfuscated = obfuscator.transform(source)
-deobfuscated = obfuscator.restore(obfuscated)
-
-print(f"Source: {source}")
-print(f"Obfuscated: {obfuscated}")
-print(f"Deobfuscated: {deobfuscated}")
