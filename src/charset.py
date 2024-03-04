@@ -57,7 +57,7 @@ class URLCharset():
     def __str__(self) -> str:
         return self.charset
     
-    def _validate(self, input: str) -> None:
+    def validate(self, input: str) -> None:
         """Raises a ValueError if the input string contains characters not in the defined charset."""
         
         if set(input).difference(self.charset) != set():
