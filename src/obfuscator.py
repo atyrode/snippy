@@ -53,9 +53,9 @@ class Obfuscator():
     def transform(self, input: str) -> str:
         """Applies the passphrase-based obfuscation on the input."""
         
-        return self._translate(input, self._transform_shift)
+        return self._translate(input, self._shift)
     
     def restore(self, input: str) -> str:
         """Reverse the passphrase-based obfuscation on the input."""
         
-        return self._translate(input, -self._transform_shift)
+        return self._translate(input, -self._shift)
