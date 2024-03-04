@@ -18,8 +18,8 @@ class Obfuscator():
         return len(self.charset)
     
     @property
-    def _transform_shift(self) -> int:
-        """Translation value based on the passphrase's sum of indexes"""
+    def _shift(self) -> int:
+        """Shift value based on the passphrase's sum of indexes"""
         
         shift: int = sum(
             self.charset.index(char)
