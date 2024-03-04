@@ -30,8 +30,21 @@ class Obfuscator():
         return len(self.charset)
     
     @property
+    def _forward(self) -> int:
+        return 1 * len(self.passphrase)
+                 # ^ Extra obfuscation
+    
+    @property
+    def _backward(self) -> int:
+        return -1 * len(self.passphrase)
+    
+    @property
+    def _sum_passphrase_index(self) -> int:
+        return sum([self.charset.index(char) for char in self.passphrase])
+    
+    @property
     def _scrambled_charset(self) -> str:
-        """Scramble the charset based on the hashed passphrase"""
+        """Scramble the charset based on the passphrase"""
 
         random.seed(self.passphrase)
         original_charset = list(self.charset)
@@ -40,66 +53,33 @@ class Obfuscator():
         
         return ''.join(scrambled_charset)
     
-    @property
-    def _shift(self) -> int:
-        """Shift value based on the passphrase's sum of indexes"""
-        
-        shift: int = sum(
-            self._scrambled_charset.index(char)
-            for char
-            in self.passphrase
-        ) % self._base # <- Ensures wrap-around within the (scrambled) charset
-        
-        return shift
-        
+
     def _translate(self, input: str, shift: int) -> str:
         """Applies a translation to a string based on the codec's charset."""
         
         input = self._validate_input(input)
         
-        translation: str = str()
-        
-        for char in input:
-            pos: int        = self._scrambled_charset.index(char)
-            shifted: int = (pos + shift) % self._base # <- Ensures wrap-around
-            
-            translation += self._scrambled_charset[shifted]
+        translated: str = str()
     
-        return translation
+        for index, char in enumerate(input):
+            # Passphrase
+            pp_index: int       = index % len(self.passphrase)
+            pp_char_index: int  = self.charset.index(self.passphrase[pp_index])
+            translation: int    = (pp_char_index + self._sum_passphrase_index) % self._base
+            old_pos: int        = self._scrambled_charset.index(char)
+            new_pos: int        = old_pos + (translation * shift)
+            new_char: str       = self._scrambled_charset[new_pos % self._base]
+            
+            translated += new_char
+    
+        return translated
     
     def transform(self, input: int) -> str:
         """Applies the passphrase-based obfuscation on the input."""
         
-        return self._translate(input, self._shift)
+        return self._translate(input, self._forward)
     
     def restore(self, input: str) -> int:
         """Reverse the passphrase-based obfuscation on the input."""
         
-        return self._translate(input, -self._shift)
-    
-    
-charset = URLCharset(numeric=True, lowercase_ascii=True, uppercase_ascii=True, special=False)
-obfuscator = Obfuscator(charset, "snippy")
-print(f"Charset: {obfuscator.charset}")
-print(f"Scrambled charset: {obfuscator._scrambled_charset}")
-print(f"Passphrase: {obfuscator.passphrase}")
-print("-" * 80)
-
-source = "00001"
-obfuscated = obfuscator.transform(source)
-deobfuscated = obfuscator.restore(obfuscated)
-
-print(f"Source: {source}")
-print(f"Obfuscated: {obfuscated}")
-print(f"Deobfuscated: {deobfuscated}")
-print("=" * 20)
-
-source = "00002"
-obfuscated = obfuscator.transform(source)
-deobfuscated = obfuscator.restore(obfuscated)
-
-print(f"Source: {source}")
-print(f"Obfuscated: {obfuscated}")
-print(f"Deobfuscated: {deobfuscated}")
-
-print("=" * 20)
+        return self._translate(input, self._backward)
