@@ -24,7 +24,7 @@ class URLCharset():
     special: bool
     
     # Enforces clear intent of its composition
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         
         for value in self.__dict__.values():
             if type(value) is not bool: # <- 'is' proves intent, '==' wouldn't
@@ -56,3 +56,9 @@ class URLCharset():
 
     def __str__(self) -> str:
         return self.charset
+    
+    def _validate(self, input: str) -> None:
+        """Raises a ValueError if the input string contains characters not in the defined charset."""
+        
+        if set(input).difference(self.charset) != set():
+            raise ValueError(f"The input ({input}) contains characters not in the defined charset ({(str(self.charset))})")
