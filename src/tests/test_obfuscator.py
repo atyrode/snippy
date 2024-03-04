@@ -70,3 +70,22 @@ def test_empty_string_restore(obfuscator: Obfuscator):
     restored: str       = obfuscator.restore(input)
     
     assert restored == str()
+    
+    
+## Unpredactability ##
+
+# We ensure that we don't get the next result by increasing the charset index
+# by one for the last character in the obfuscated string
+
+def test_unpredactability(obfuscator: Obfuscator):
+    input: str          = "test"
+    transformed: str    = obfuscator.transform(input)
+    last_char: str      = transformed[-1]
+    last_char_index: int= obfuscator.charset.index(last_char)
+    
+    # Increase the last character index by one
+    transformed = transformed[:-1] + obfuscator.charset[last_char_index + 1]
+    
+    restored: str       = obfuscator.restore(transformed)
+    
+    assert restored != input
