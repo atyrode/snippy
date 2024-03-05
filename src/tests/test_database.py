@@ -1,27 +1,19 @@
 import os
+
+import pytest
+
 from database import DbManager
 
-# Re-define __exit__ method to remove the test DbManager file after the test
-old_exit = DbManager.__exit__
-
-def overload_exit(self, *args, **kwargs):
-    old_exit(self, *args, **kwargs)
+@pytest.fixture(autouse=True)
+def run_after_each_test():
+    yield
     os.remove("test.db")
-
-DbManager.__exit__ = overload_exit
-# End of re-definition
-        
+    
 def test_context_manager():
     with DbManager('test.db') as db:
         assert db.connection is not None
         assert db.cursor is not None
         
-    try:
-        with DbManager('test.db') as db:
-            raise Exception
-    except Exception:
-        assert Exception is not None
-
 def test_commit():
     with DbManager('test.db') as db:
         db.cursor.execute("CREATE TABLE IF NOT EXISTS test (id INTEGER, name TEXT)")
@@ -58,14 +50,14 @@ def test_insert():
         db.insert("test", ("id", "name"), (1, "test"))
         db.cursor.execute("SELECT * FROM test")
         assert db.cursor.fetchall() == [(1, "test")]
-        
+
 def test_insert_sql_injection():
     with DbManager('test.db') as db:
         db.create_table("test", ("id INTEGER", "name TEXT"))
         db.insert("test", ("id", "name"), (1, "test'); DROP TABLE test; --"))
         db.cursor.execute("SELECT * FROM test")
         assert db.cursor.fetchall() == [(1, "test'); DROP TABLE test; --")]
-        
+ 
 def test_update():
     with DbManager('test.db') as db:
         db.create_table("test", ("id INTEGER", "name TEXT"))
@@ -73,7 +65,7 @@ def test_update():
         db.update("test", ("name",), ("test2",), "id=?", (1,))
         db.cursor.execute("SELECT * FROM test")
         assert db.cursor.fetchall() == [(1, "test2")]
-        
+
 def test_delete():
     with DbManager('test.db') as db:
         db.create_table("test", ("id INTEGER", "name TEXT"))
@@ -81,7 +73,7 @@ def test_delete():
         db.delete("test", "id=?", (1,))
         db.cursor.execute("SELECT * FROM test")
         assert db.cursor.fetchall() == []
-        
+
 def test_select():
     with DbManager('test.db') as db:
         db.create_table("test", ("id INTEGER", "name TEXT"))
