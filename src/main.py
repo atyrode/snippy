@@ -53,10 +53,13 @@ def encode_url(url: str) -> dict:
         dict: A JSON response containing the encoded URL
     """
     
+    if url == "":
+        return {"error": "No URL provided"}
+    
     unique_id: int = get_row_count() + 1
     
     encoded_uid: str = codec.encode(unique_id)
-    shortened_url: str = f"{DOMAIN_NAME}/{encoded_uid}"
+    shortened_url: str = f"{DOMAIN_NAME}{encoded_uid}"
     
     with DbManager(DB_PATH) as db:
         db.insert("links", ("url",), (url,))
@@ -74,6 +77,9 @@ def decode_url(url: str) -> dict:
     Returns:
         dict: A JSON response containing the original URL and the number of clicks
     """
+    
+    if url == "":
+        return {"error": "No URL provided"}
     
     url: str = cut_domain_name(url) 
     decoded_id: int = codec.decode(url)
