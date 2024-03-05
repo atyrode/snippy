@@ -1,7 +1,7 @@
 import os
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from charset import URLCharset
 from codec import Codec
@@ -78,26 +78,33 @@ def decode_url(url: str) -> dict:
         dict: A JSON response containing the original URL and the number of clicks
     """
     
+    url: str = cut_domain_name(url) 
+    
     if url == "":
         return {"error": "No URL provided"}
-    
-    url: str = cut_domain_name(url) 
-    decoded_id: int = codec.decode(url)
-    
     # There is no row with id 0, so there can't be a shortened URL for it
-    if url == "0":
+    elif url == "0":
         return {"original_url": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
     
+    try:
+        url_charset.validate(url)
+    except ValueError as e:
+        return {"error": "Not a valid snippy URL"}
+    
+    decoded_id: int = codec.decode(url)
+    
     with DbManager(DB_PATH) as db:
-        url, clicks = db.cursor.execute("SELECT url, clicks FROM links WHERE id=?", (decoded_id,)).fetchone()
-        
-    return {"original_url": url, "clicks": clicks}
+        result = db.cursor.execute("SELECT url, clicks FROM links WHERE id=?", (decoded_id,)).fetchone()
+    
+    if result is None:
+        raise HTTPException(status_code=404, detail="URL not found")
+    
+    return {"original_url": result[0], "clicks": result[1]}
 
 if __name__ == "__main__":
-    db = DbManager(DB_PATH)
-    
-    # Creates the links table if it doesn't exist
-    db.create_table(**LINKS_TABLE)
+    # Create the database and the table if they don't exist
+    with DbManager(DB_PATH) as db:
+        db.create_table(**LINKS_TABLE)
     
     # Start the FastAPI server
     uvicorn.run(app, host="0.0.0.0", port=8000)
