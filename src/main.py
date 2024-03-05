@@ -16,7 +16,7 @@ PARENT_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH     = PARENT_DIR + "/snippy.db"
 LINKS_TABLE = {
     "table_name": "links",
-    "fields": ("id INTEGER PRIMARY KEY", "url TEXT NOT NULL")
+    "fields": ("id INTEGER PRIMARY KEY", "url TEXT NOT NULL", "clicks INTEGER DEFAULT 0")
 }
 
 DOMAIN_NAME = "snip.py"
@@ -45,7 +45,7 @@ def encode_url(url: str) -> dict:
         dict: A JSON response containing the encoded URL
     """
     
-    unique_id: int = get_row_count()
+    unique_id: int = get_row_count() + 1
     
     encoded_uid: str = codec.encode(unique_id)
     shortened_url: str = f"{DOMAIN_NAME}/{encoded_uid}"
@@ -54,6 +54,32 @@ def encode_url(url: str) -> dict:
         db.insert("links", ("url",), (url,))
     
     return {"shortened_url": shortened_url}
+
+
+@app.get("/decode")
+def decode_url(url: str) -> dict:
+    """Decodes a short string to its original URL
+
+    Args:
+        encoded (str): The short string to decode
+
+    Returns:
+        dict: A JSON response containing the original URL
+    """
+    
+    decoded_id: int = codec.decode(url)
+    
+    if url == "0":
+        return {"original_url": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
+    
+    with DbManager(DB_PATH) as db:
+        url, clicks = db.cursor.execute("SELECT url, clicks FROM links WHERE id=?", (decoded_id,)).fetchone()
+
+        # Increment the clicks counter
+        db.cursor.execute("UPDATE links SET clicks=clicks+1 WHERE id=?", (decoded_id,))
+    
+    return {"original_url": url, "clicks": clicks}
+
 
 if __name__ == "__main__":
     db = DbManager(DB_PATH)
