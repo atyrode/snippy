@@ -1,0 +1,63 @@
+body, html {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#particles-js {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(34, 34, 34);
+    background-image: url("");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 50% 50%;
+}
+
+.container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.title-container h1 {
+    position: absolute;
+    top: -2.2em;
+    color: rgb(240, 240, 240);
+    font-size: 200px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    transform: translateX(-50%);
+    user-select: none;
+    pointer-events: none;
+}
+
+.input-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.input-container input[type="text"] {
+    width: 80vw;
+    padding: 2rem;
+    border: double 3px transparent;
+    border-radius: 6px;
+    background-image: linear-gradient(rgb(95, 95, 95), rgb(95, 95, 95)), 
+                      linear-gradient(to right, rgb(123, 149, 233), rgb(158, 60, 129));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    font-size: 24px;
+    outline: none;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: white;
+}
+
+.input-container input[type="text"]::placeholder {
+    color: white;
+}
+

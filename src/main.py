@@ -2,6 +2,8 @@ import os
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from charset import URLCharset
 from codec import Codec
@@ -20,6 +22,14 @@ LINKS_TABLE = {
 }
 
 DOMAIN_NAME = "http://snip.py/"
+
+# This avoids collisions with a possible /static path in the future
+app.mount("/static/", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def read_root() -> dict:
+    # Shows the index.html file:
+    return FileResponse("static/index.html")
 
 def get_row_count() -> int:
     with DbManager(DB_PATH) as db:
@@ -94,12 +104,37 @@ def decode_url(url: str) -> dict:
     decoded_id: int = codec.decode(url)
     
     with DbManager(DB_PATH) as db:
-        result = db.cursor.execute("SELECT url, clicks FROM links WHERE id=?", (decoded_id,)).fetchone()
+        result = db.select("links", ("url", "clicks",), "id", decoded_id)[0]
     
     if result is None:
         raise HTTPException(status_code=404, detail="URL not found")
     
     return {"original_url": result[0], "clicks": result[1]}
+
+@app.get("/{url}")
+@app.get("/" + DOMAIN_NAME + "/{url}")
+def redirect_url(url: str) -> dict:
+    """Redirects the user to the original URL from the shortened string
+
+    Args:
+        url (str): The short string to decode
+
+    Returns:
+        dict: A JSON response containing the original URL
+    """
+    
+    decode_result = decode_url(url)
+    
+    if "error" in decode_result.keys():
+        return decode_result
+    
+    original_url = decode_result["original_url"]
+        
+    with DbManager(DB_PATH) as db:
+        # Increment the clicks counter
+        db.update("links", ("clicks",), "clicks+1", "url", original_url)
+        
+    return RedirectResponse(original_url)
 
 if __name__ == "__main__":
     # Create the database and the table if they don't exist
