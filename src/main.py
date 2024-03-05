@@ -19,12 +19,20 @@ LINKS_TABLE = {
     "fields": ("id INTEGER PRIMARY KEY", "url TEXT NOT NULL", "clicks INTEGER DEFAULT 0")
 }
 
-DOMAIN_NAME = "snip.py"
+DOMAIN_NAME = "http://snip.py/"
 
 def get_row_count() -> int:
     with DbManager(DB_PATH) as db:
-        return db.cursor.execute("SELECT COUNT(*) FROM links").fetchone()[0]
+        return db.cursor.execute(f"SELECT COUNT(*) FROM {LINKS_TABLE['table_name']}").fetchone()[0]
+
+def cut_domain_name(url: str) -> str:
+    """Removes the domain name from the URL to get the variable part"""
     
+    if url.startswith(DOMAIN_NAME):
+        return url[len(DOMAIN_NAME):]
+    
+    return url
+
 @app.get("/")
 def read_root() -> dict:
     """Boilerplate FastAPI endpoint
@@ -61,25 +69,23 @@ def decode_url(url: str) -> dict:
     """Decodes a short string to its original URL
 
     Args:
-        encoded (str): The short string to decode
+        url (str): The URL to decode
 
     Returns:
-        dict: A JSON response containing the original URL
+        dict: A JSON response containing the original URL and the number of clicks
     """
     
+    url: str = cut_domain_name(url) 
     decoded_id: int = codec.decode(url)
     
+    # There is no row with id 0, so there can't be a shortened URL for it
     if url == "0":
         return {"original_url": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
     
     with DbManager(DB_PATH) as db:
         url, clicks = db.cursor.execute("SELECT url, clicks FROM links WHERE id=?", (decoded_id,)).fetchone()
-
-        # Increment the clicks counter
-        db.cursor.execute("UPDATE links SET clicks=clicks+1 WHERE id=?", (decoded_id,))
-    
+        
     return {"original_url": url, "clicks": clicks}
-
 
 if __name__ == "__main__":
     db = DbManager(DB_PATH)
