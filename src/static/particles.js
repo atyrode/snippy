@@ -55,8 +55,9 @@ async function resultSlide(uid) {
 
     snipResult.addEventListener('click', function() {
         window.location.href = `/${uid}`});
-
-    snipResult.innerHTML = uid;
+    
+    let url = uid.substring(7);
+    snipResult.innerHTML = url;
 }
 
 async function showResult(ev) {

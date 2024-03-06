@@ -74,9 +74,7 @@ def decode_url(url: str) -> dict:
     Returns:
         dict: A JSON response containing the original URL and the number of clicks
     """
-    
-    print(f"Received decode URL: {url}")
-    
+        
     if url.startswith(DOMAIN_NAME):
         url = url[len(DOMAIN_NAME):]
     
@@ -108,9 +106,7 @@ def determine_what_to_do(url: str):
     Returns:
         dict: A JSON response containing the original URL or the shortened one
     """
-    
-    print(f"Received determine URL: {url}")
-    
+        
     if url.startswith(DOMAIN_NAME):
         return RedirectResponse(f"/decode?url={url}")
     else:
