@@ -77,7 +77,9 @@ def decode_url(url: str) -> dict:
         
     if url.startswith(DOMAIN_NAME):
         url = url[len(DOMAIN_NAME):]
-    
+    elif url.startswith(DOMAIN_NAME[7:]):
+        url = url[len(DOMAIN_NAME[7:]):]
+        
     if url == "":
         return {"error": "No URL provided"}
     elif url == "0": # There's no row id 0, so there can't be a shortened URL for it
