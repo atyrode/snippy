@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from database import DbManager, SnippyDB
+from ..database import DbManager, SnippyDB
 
 @pytest.fixture(autouse=True)
 def run_after_each_test():

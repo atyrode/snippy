@@ -3,7 +3,7 @@ from itertools import product
 
 import pytest
 
-from charset import URLCharset
+from src.charset import URLCharset
 
 CHARSETS = {
     "numeric":          string.digits,

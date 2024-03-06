@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from charset import URLCharset
+
+from .charset import URLCharset
     
 # Codec class isn't the best definition of a 'dataclass' as it contains logic
 # but it benefits from immutability without having to manually define it.

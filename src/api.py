@@ -1,13 +1,12 @@
 import os
 
-import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from charset import URLCharset
-from codec import Codec
-from database import SnippyDB
+from .charset import URLCharset
+from .codec import Codec
+from .database import SnippyDB
 
 ## CONSTANTS ##
 
@@ -24,6 +23,13 @@ url_charset = URLCharset(numeric=True, lowercase_ascii=True,
 codec       = Codec(charset=url_charset)
 app         = FastAPI()
 
+# Create the database if it doesn't exist and the links table
+with SnippyDB(DB_PATH) as db:
+    db.create_table(db.table_name, db.fields)
+    
+# "/static/" avoids collisions with a possible /static generated path in the future
+app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
+    
 ## API ENDPOINTS ##
 
 @app.get("/")
@@ -136,15 +142,3 @@ def redirect_url(url: str) -> dict:
         original_url = "http://" + original_url
         
     return RedirectResponse(original_url)
-    
-if __name__ == "__main__":
-    
-    # Create the database if it doesn't exist and the links table
-    with SnippyDB(DB_PATH) as db:
-        db.create_table(db.table_name, db.fields)
-    
-    # "/static/" avoids collisions with a possible /static generated path in the future
-    app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
-
-    # Start the FastAPI server
-    uvicorn.run(app, host="0.0.0.0", port=8080)

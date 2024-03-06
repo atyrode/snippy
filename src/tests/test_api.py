@@ -1,17 +1,14 @@
 import os
-import random
-import time
 import pytest
 
 from fastapi.testclient import TestClient
-from fastapi.staticfiles import StaticFiles
 
-import main
+import src.api as api
 
-main.DB_PATH = "test.db"
-DB_PATH = main.DB_PATH
+api.DB_PATH = "test.db"
+DB_PATH = api.DB_PATH
 
-from main import app, DOMAIN_NAME 
+from src.api import app, DOMAIN_NAME 
 from database import SnippyDB
 
 @pytest.fixture(autouse=True)

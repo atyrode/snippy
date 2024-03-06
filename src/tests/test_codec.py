@@ -1,7 +1,7 @@
 import pytest
 
-from codec import Codec
-from charset import URLCharset
+from src.codec import Codec
+from src.charset import URLCharset
 
 @pytest.fixture
 def url_charset() -> URLCharset:
