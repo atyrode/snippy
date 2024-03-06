@@ -139,8 +139,6 @@ class SnippyDB(DbManager):
             f"{self.clicks_key}": "INTEGER DEFAULT 0"
         }
         
-        self.create_table(self.table_name, self.fields)
-        
     def get_row_count(self) -> Optional[int]:
         """Returns the number of rows in the main table."""
         

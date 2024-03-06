@@ -93,16 +93,19 @@ def test_select():
 
 def test_created_links_table():
     with SnippyDB('test.db') as db:
+        db.create_table(db.table_name, db.fields)
         assert (db.table_name,) in db.list_tables()
         
 def test_insert_link():
     with SnippyDB('test.db') as db:
+        db.create_table(db.table_name, db.fields)
         db.insert_link("https://www.wikipedia.org/")
         db.cursor.execute("SELECT * FROM links")
         assert db.cursor.fetchall() == [(1, "https://www.wikipedia.org/", 0)]
         
 def test_increment_clicks():
     with SnippyDB('test.db') as db:
+        db.create_table(db.table_name, db.fields)
         db.insert_link("https://www.wikipedia.org/")
         db.increment_clicks(1)
         result = db.select_link(1)
@@ -110,12 +113,14 @@ def test_increment_clicks():
         
 def test_select_link():
     with SnippyDB('test.db') as db:
+        db.create_table(db.table_name, db.fields)
         db.insert_link("https://www.wikipedia.org/")
         result = db.select_link(1)
         assert result == ("https://www.wikipedia.org/", 0)
         
 def test_get_row_count():
     with SnippyDB('test.db') as db:
+        db.create_table(db.table_name, db.fields)
         assert db.get_row_count() == 0
         db.insert_link("https://www.wikipedia.org/")
         assert db.get_row_count() == 1
