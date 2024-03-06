@@ -130,7 +130,8 @@ def redirect_url(url: str) -> dict:
     original_url = decode_result["url"]
         
     with SnippyDB(DB_PATH) as db:
-        db.increment_clicks(original_url)
+        decoded_id: int = codec.decode(url)
+        db.increment_clicks(decoded_id)
     
     if not original_url.startswith("http"):
         original_url = "http://" + original_url

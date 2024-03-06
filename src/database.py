@@ -160,7 +160,7 @@ class SnippyDB(DbManager):
         # TODO: It seems like we can't have proper SQL injection protection for
         # this usecase, using self.update passes the click+1 as a string
         sql = f"UPDATE {self.table_name} SET {self.clicks_key}={self.clicks_key}+1 WHERE {self.id_key}=?"
-        
+
         self.exec_commit(sql, params=(id,))
         
     def select_link(self, id: int) -> Optional[Tuple]:
