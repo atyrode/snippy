@@ -45,6 +45,7 @@ You're set. `start.py` will run **snippy** using `uvicorn`, which will let you m
 
 As a bonus, and if you want to use it like a regular URL shortener, you can access its front page on `localhost:8080/` in your browser of choice.
 
+Finally, you can access `localhost:8080/docs/` to get the documentation (**Swagger**) of the **snippy** API!
 
 # Good bye!
 
