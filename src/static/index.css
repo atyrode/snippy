@@ -1,0 +1,69 @@
+body, html {
+    height: 100%;
+    width: 100%;
+    background-color: rgb(34, 34, 34);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#tsparticles {
+    opacity: 0;
+    width: 0;
+    z-index: 0;
+    animation: fadeInBegin 2s ease forwards;
+}
+
+#tsparticles2 {
+    opacity: 0;
+    width: 0;
+    z-index: 0;
+    animation: fadeInBegin 3s ease-in forwards;
+}
+
+@keyframes fadeInBegin {
+    to { opacity: 1; }
+}
+
+#field {
+    width: 50vw;
+    padding: 2rem;
+    border: double 3px transparent;
+    border-radius: 6px;
+    background-image: linear-gradient(rgb(95, 95, 95), rgb(95, 95, 95)), 
+                      linear-gradient(to right, rgb(123, 149, 233), rgb(214, 98, 179));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    font-size: 24px;
+    outline: none;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: white;
+    z-index: 1;
+    text-align: center;
+}
+
+#field input[type="text"]::placeholder {
+    color: white;
+    
+}
+
+#snip_result {
+    position: absolute;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 80px;
+    text-decoration: none;
+    transition: color 0.5s ease-in-out;
+    color: rgb(214, 98, 179);
+}
+
+#snip_result:hover{
+    color:rgb(161, 151, 247);
+}
+
+.slide {
+    animation: slide 1.5s cubic-bezier(0, 1, 0.5, 1) forwards;
+}
+
+@keyframes slide {
+    to { transform: translateY(18vh); }
+}
