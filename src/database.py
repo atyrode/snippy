@@ -63,7 +63,7 @@ class DbManager:
 
     def update(self, table_name: str, fields: tuple, values: tuple, condition: str, condition_values: tuple) -> None:
         set_clause = ', '.join([f"{field}=?" for field in fields])
-        sql = f"UPDATE {table_name} SET {set_clause} WHERE {condition}"
+        sql = f"UPDATE {table_name} SET {set_clause} WHERE {condition}=?"
         self.cursor.execute(sql, values + condition_values)
         self.commit()
 
@@ -72,9 +72,9 @@ class DbManager:
         self.cursor.execute(sql, condition_values)
         self.commit()
 
-    def select(self, table_name: str, fields: tuple, condition: str, condition_values: tuple) -> None:
+    def select(self, table_name: str, fields: tuple, condition: str, condition_values: str) -> None:
         fields_clause = ', '.join(fields)
-        sql = f"SELECT {fields_clause} FROM {table_name} WHERE {condition}"
+        sql = f"SELECT {fields_clause} FROM {table_name} WHERE {condition}=?"
         self.cursor.execute(sql, condition_values)
         return self.cursor.fetchall()
 
