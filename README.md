@@ -9,7 +9,7 @@
 - `/encode?url=`
 - `/decode?url=` 
 
-Both of these takes an URL as argument and respectively `encode` or `decode` it. It is not meant to be private or obfuscated, it `decode` into its database row unique id count and `encode` on a base 62.
+Both of these takes an URL as argument and respectively `encode` or `decode` and return a JSON containing a 'url' key. It is not meant to be private or obfuscated, it `decode` into its database row unique id count and `encode` on a base 62.
 
 - `/determine?url=`
 
