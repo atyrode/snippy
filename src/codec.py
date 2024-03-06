@@ -35,9 +35,6 @@ class Codec():
     def decode(self, encoded: str) -> int:
         decoded: int = int()
         
-        # Ensure the encoded string characters are valid for the charset
-        self.charset.validate(encoded)
-        
         for char in encoded:
             decoded = decoded * self._base + self.charset.index(char)
 
