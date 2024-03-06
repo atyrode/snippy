@@ -13,9 +13,9 @@ from database import SnippyDB
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
-DB_PATH      = os.path.join(PROJECT_ROOT, 'src', 'snippy.db')
+DB_PATH      = os.path.join(PROJECT_ROOT, 'snippy.db')
 
-DOMAIN_NAME  = "vite.lol"
+DOMAIN_NAME  = "snip.py/"
 
 ## CORE LOGIC ##
 
@@ -41,6 +41,8 @@ def encode_url(url: str) -> dict:
         dict: A JSON response containing the encoded URL
     """
     
+    print(f"Received encode URL: {url}")
+    
     if url == "":
         return {"error": "No URL provided"}
     
@@ -55,7 +57,7 @@ def encode_url(url: str) -> dict:
     with SnippyDB(DB_PATH) as db:
         db.insert_link(url)
     
-    return {"shortened_url": shortened_url}
+    return {"url": shortened_url}
 
 
 @app.get("/decode")
@@ -69,13 +71,15 @@ def decode_url(url: str) -> dict:
         dict: A JSON response containing the original URL and the number of clicks
     """
     
+    print(f"Received decode URL: {url}")
+    
     if url.startswith(DOMAIN_NAME):
         url = url[len(DOMAIN_NAME):]
     
     if url == "":
         return {"error": "No URL provided"}
     elif url == "0": # There's no row id 0, so there can't be a shortened URL for it
-        return {"original_url": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
+        return {"url": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
     elif url_charset.validate(url) == False:
         return {"error": "Not a valid URL"}
     
@@ -88,11 +92,29 @@ def decode_url(url: str) -> dict:
     else:
         original_url, clicks = result
     
-    return {"original_url": original_url, "clicks": clicks}
+    return {"url": original_url, "clicks": clicks}
 
-@app.get("redirect?url={url}")
+@app.get("/determine")
+def determine_what_to_do(url: str):
+    """Determines if the URL is a shortened one or a regular one
+    
+    Args:
+        url (str): The URL to determine
+    
+    Returns:
+        dict: A JSON response containing the original URL or the shortened one
+    """
+    
+    print(f"Received determine URL: {url}")
+    
+    if url.startswith(DOMAIN_NAME) or url.startswith(f"http://{DOMAIN_NAME}"):
+        return RedirectResponse(f"/decode?url={url}")
+    else:
+        return RedirectResponse(f"/encode?url={url}")
+    
+@app.get("/redirect/")
 @app.get("/{url}")
-@app.get(f"/{DOMAIN_NAME}" + "/{url}")
+@app.get(f"/{DOMAIN_NAME}" + "{url}")
 def redirect_url(url: str) -> dict:
     """Redirects the user to the original URL from the shortened string
 
@@ -105,13 +127,16 @@ def redirect_url(url: str) -> dict:
     if "error" in decode_result.keys():
         return decode_result
     
-    original_url = decode_result["original_url"]
+    original_url = decode_result["url"]
         
     with SnippyDB(DB_PATH) as db:
         db.increment_clicks(original_url)
+    
+    if not original_url.startswith("http"):
+        original_url = "http://" + original_url
         
     return RedirectResponse(original_url)
-
+    
 if __name__ == "__main__":
     
     # Create the database if it doesn't exist and the links table
@@ -122,4 +147,4 @@ if __name__ == "__main__":
     app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
 
     # Start the FastAPI server
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)

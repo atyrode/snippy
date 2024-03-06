@@ -56,21 +56,21 @@ def test_encode():
         response = client.get("/encode?url=https://www.wikipedia.org/")
         assert response.status_code == 200
         response = response.json()
-        assert "shortened_url" in response
-        assert DOMAIN_NAME in response["shortened_url"]
-        assert len(response["shortened_url"].replace(DOMAIN_NAME, "")) > 0
+        assert "url" in response
+        assert DOMAIN_NAME in response["url"]
+        assert len(response["url"].replace(DOMAIN_NAME, "")) > 0
         
 def test_decode():
     with TestClient(app) as client:
         response = client.get("/encode?url=https://www.wikipedia.org/")
-        shortened_url = response.json()["shortened_url"]
+        shortened_url = response.json()["url"]
         
     with TestClient(app) as client:
         response = client.get(f"/decode?url={shortened_url}")
         assert response.status_code == 200
         response = response.json()
-        assert "original_url" in response
-        assert response["original_url"] == "https://www.wikipedia.org/"
+        assert "url" in response
+        assert response["url"] == "https://www.wikipedia.org/"
         assert "clicks" in response
         assert response["clicks"] == 0
         
@@ -79,8 +79,8 @@ def test_decode_0():
         response = client.get("/decode?url=" + DOMAIN_NAME + "0")
         assert response.status_code == 200
         response = response.json()
-        assert "original_url" in response
-        assert response["original_url"] == "https://en.wikipedia.org/wiki/0#Computer_science"
+        assert "url" in response
+        assert response["url"] == "https://en.wikipedia.org/wiki/0#Computer_science"
         assert "clicks" in response
         assert response["clicks"] == -1
 
