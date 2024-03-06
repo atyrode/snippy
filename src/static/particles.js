@@ -2,33 +2,61 @@ import { tsParticles } from 'https://cdn.jsdelivr.net/npm/@tsparticles/engine@3.
 import { loadPolygonMaskPlugin } from 'https://cdn.jsdelivr.net/npm/@tsparticles/plugin-polygon-mask@3.3.0/+esm';
 import { loadFull } from 'https://cdn.jsdelivr.net/npm/tsparticles@3.3.0/+esm';
 
-const config = await (await fetch("static/particles.json")).json();
-
+let first_time = true;
 const field = document.getElementById('field');
-    
 field.addEventListener('keypress', showResult);
 
-(async () => {
+async function displayBackground() {
+    let new_config = await (await fetch("static/background.json")).json()
+
+    await tsParticles
+    .load({
+      id: "tsparticles2",
+      options: new_config,
+    });
+}
+
+displayBackground();
+
+async function displayTitle() {
+    const config = await (await fetch("static/title.json")).json();
+
     await loadFull(tsParticles);
-    await loadPolygonMaskPlugin(tsParticles);
+    await loadPolygonMaskPlugin(tsParticles)
 
     await tsParticles
     .load({
       id: "tsparticles",
       options: config,
     });
-})();
+}
+
+displayTitle();
 
 
-async function generateSvg(uid) {
-    let svg_link = `https://danmarshall.github.io/google-font-to-svg-path/?font-select=Gurajada&font-variant=regular&input-union=false&input-filled=true&input-kerning=true&input-separate=false&input-text=${uid}&input-bezier-accuracy=&dxf-units=cm&input-size=100&input-fill=%23000&input-stroke=%23000&input-strokeWidth=0.25mm&input-fill-rule=evenodd`
-    return fetch(svg_link)
-    .then(response => response.text())
-    .then(data => {
-        let svg = new Blob([data], {type: 'image/svg+xml'});
-        let url = URL.createObjectURL(svg);
-        return url;
-    });
+async function resultSlide(uid) {
+    let snipResult = document.getElementById('snip_result');
+
+    function resetTransform() {
+        if (!first_time) {
+            this.style.transform = "translateY(0)";
+        }
+    }
+
+    if (!first_time) {
+        snipResult.classList.remove('slide');
+        void snipResult.offsetWidth;
+    } else {
+        first_time = false;
+    }
+
+    snipResult.addEventListener('animationend', resetTransform, {once: true})
+    snipResult.classList.add('slide');
+
+    snipResult.addEventListener('click', function() {
+        window.location.href = `/${uid}`});
+
+    snipResult.innerHTML = uid;
 }
 
 async function showResult(ev) {
@@ -43,28 +71,10 @@ async function showResult(ev) {
                 method: 'GET',
             });
             const data = await response.json();
-            let url_id = data.url.split('/')[1];
-            let svg_url = await generateSvg(url_id); 
-            // We now change the particle config svg to the new svg
-            config.polygon.url = `https://danmarshall.github.io/google-font-to-svg-path/?font-select=Gurajada&font-variant=regular&input-union=false&input-filled=true&input-kerning=true&input-separate=false&input-text=${url_id}&input-bezier-accuracy=&dxf-units=cm&input-size=100&input-fill=%23000&input-stroke=%23000&input-strokeWidth=0.25mm&input-fill-rule=evenodd`
-            // We create a new div that will contain the particles
-            let div = document.createElement('div');
-            div.id = 'tsparticles_result';
-            (async () => {
-                await tsParticles
-                .load({
-                  id: "tsparticles",
-                  options: config,
-                });
-            })();
+            await resultSlide(data.url);
+
         } catch (error) {
             console.error('Error:', error);
         }
     }
 };
-
-
-// snipResult.addEventListener('click', function() {
-//     window.location.href = `http://localhost:8000/${result}`});
-
-// snipResult.innerHTML = result;

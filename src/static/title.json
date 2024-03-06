@@ -78,10 +78,10 @@
         },
         "scale": 2.5,
         "type": "inline",
-        "url": "./static/snippy.svg",
+        "url": "./static/logo.svg",
         "position": {
             "x": 50,
-            "y": 30
+            "y": 25
         }
     }
 }
