@@ -12,7 +12,7 @@ from .database import SnippyDB
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
-DB_PATH      = os.path.join(PROJECT_ROOT, 'snippy.db')
+DB_PATH      = os.path.join(PROJECT_ROOT, 'data', 'snippy.db')
 
 DOMAIN_NAME  = "http://vite.lol/"
 SHORT_URL    = DOMAIN_NAME[7:] # without the http://
@@ -22,7 +22,7 @@ SHORT_URL    = DOMAIN_NAME[7:] # without the http://
 url_charset = URLCharset(numeric=True, lowercase_ascii=True,
                          uppercase_ascii=True, special=False)
 codec       = Codec(charset=url_charset)
-app         = FastAPI()
+app         = FastAPI(docs_url="/docs/")
 
 # Create the database if it doesn't exist and the links table
 with SnippyDB(DB_PATH) as db:
