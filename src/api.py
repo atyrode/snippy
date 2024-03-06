@@ -14,7 +14,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
 DB_PATH      = os.path.join(PROJECT_ROOT, 'snippy.db')
 
-DOMAIN_NAME  = "vite.lol/"
+DOMAIN_NAME  = "http://vite.lol/"
 
 ## CORE LOGIC ##
 
@@ -46,9 +46,7 @@ def encode_url(url: str) -> dict:
     Returns:
         dict: A JSON response containing the encoded URL
     """
-    
-    print(f"Received encode URL: {url}")
-    
+        
     if url == "":
         return {"error": "No URL provided"}
     
@@ -113,7 +111,7 @@ def determine_what_to_do(url: str):
     
     print(f"Received determine URL: {url}")
     
-    if url.startswith(DOMAIN_NAME) or url.startswith(f"http://{DOMAIN_NAME}"):
+    if url.startswith(DOMAIN_NAME):
         return RedirectResponse(f"/decode?url={url}")
     else:
         return RedirectResponse(f"/encode?url={url}")
