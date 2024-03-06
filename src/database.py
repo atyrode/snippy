@@ -51,7 +51,7 @@ class DbManager:
         self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({formatted_fields})")
         self.commit()
 
-    def list_tables(self) -> list:
+    def list_tables(self) -> list[Optional[tuple]]:
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
         return self.cursor.fetchall()
     
@@ -72,7 +72,7 @@ class DbManager:
         self.cursor.execute(sql, condition_values)
         self.commit()
 
-    def select(self, table_name: str, fields: tuple, condition: str, condition_values: tuple) -> None:
+    def select(self, table_name: str, fields: tuple, condition: str, condition_values: tuple) -> list[Optional[tuple]]:
         fields_clause = ', '.join(fields)
         sql = f"SELECT {fields_clause} FROM {table_name} WHERE {condition}=?"
         self.cursor.execute(sql, condition_values)
