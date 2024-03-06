@@ -68,11 +68,11 @@ class DbManager:
         self.commit()
 
     def delete(self, table_name: str, condition: str, condition_values: tuple) -> None:
-        sql = f"DELETE FROM {table_name} WHERE {condition}"
+        sql = f"DELETE FROM {table_name} WHERE {condition}=?"
         self.cursor.execute(sql, condition_values)
         self.commit()
 
-    def select(self, table_name: str, fields: tuple, condition: str, condition_values: str) -> None:
+    def select(self, table_name: str, fields: tuple, condition: str, condition_values: tuple) -> None:
         fields_clause = ', '.join(fields)
         sql = f"SELECT {fields_clause} FROM {table_name} WHERE {condition}=?"
         self.cursor.execute(sql, condition_values)

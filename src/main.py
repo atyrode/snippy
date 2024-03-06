@@ -21,10 +21,7 @@ LINKS_TABLE = {
     "fields": ("id INTEGER PRIMARY KEY", "url TEXT NOT NULL", "clicks INTEGER DEFAULT 0")
 }
 
-DOMAIN_NAME = "http://snip.py/"
-
-# This avoids collisions with a possible /static path in the future
-app.mount("/static/", StaticFiles(directory="static"), name="static")
+DOMAIN_NAME = "vite.lol"
 
 @app.get("/")
 def read_root() -> dict:
@@ -103,14 +100,17 @@ def decode_url(url: str) -> dict:
     
     decoded_id: int = codec.decode(url)
     
+    print(decoded_id)
+    
     with DbManager(DB_PATH) as db:
-        result = db.select("links", ("url", "clicks",), "id", decoded_id)[0]
+        result = db.select("links", ("url", "clicks",), "id", (decoded_id,))[0]
     
     if result is None:
         raise HTTPException(status_code=404, detail="URL not found")
     
     return {"original_url": result[0], "clicks": result[1]}
 
+@app.get("redirect?url={url}")
 @app.get("/{url}")
 @app.get("/" + DOMAIN_NAME + "/{url}")
 def redirect_url(url: str) -> dict:
@@ -132,7 +132,7 @@ def redirect_url(url: str) -> dict:
         
     with DbManager(DB_PATH) as db:
         # Increment the clicks counter
-        db.update("links", ("clicks",), "clicks+1", "url", original_url)
+        db.update("links", ("clicks",), "clicks+1", "url", (original_url,))
         
     return RedirectResponse(original_url)
 
@@ -141,5 +141,8 @@ if __name__ == "__main__":
     with DbManager(DB_PATH) as db:
         db.create_table(**LINKS_TABLE)
     
+    # This avoids collisions with a possible /static path in the future
+    app.mount("/static/", StaticFiles(directory="static"), name="static")
+
     # Start the FastAPI server
     uvicorn.run(app, host="0.0.0.0", port=8000)

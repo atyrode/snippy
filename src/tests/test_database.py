@@ -62,15 +62,22 @@ def test_update():
     with DbManager('test.db') as db:
         db.create_table("test", ("id INTEGER", "name TEXT"))
         db.insert("test", ("id", "name"), (1, "test"))
-        db.update("test", ("name",), ("test2",), "id=?", (1,))
+        db.update("test", ("name",), ("test2",), "id", (1,))
         db.cursor.execute("SELECT * FROM test")
         assert db.cursor.fetchall() == [(1, "test2")]
 
+def test_select():
+    with DbManager('test.db') as db:
+        db.create_table("test", ("id INTEGER", "name TEXT"))
+        db.insert("test", ("id", "name"), (1, "test"))
+        db.select("test", ("name",), "id", (1,))
+        assert db.cursor.fetchall() == [(1, "test")]
+        
 def test_delete():
     with DbManager('test.db') as db:
         db.create_table("test", ("id INTEGER", "name TEXT"))
         db.insert("test", ("id", "name"), (1, "test"))
-        db.delete("test", "id=?", (1,))
+        db.delete("test", "id", (1,))
         db.cursor.execute("SELECT * FROM test")
         assert db.cursor.fetchall() == []
 
