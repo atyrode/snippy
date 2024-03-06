@@ -25,6 +25,7 @@ codec       = Codec(charset=url_charset)
 app         = FastAPI(docs_url="/docs/")
 
 # Create the database if it doesn't exist and the links table
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 with SnippyDB(DB_PATH) as db:
     db.create_table(db.table_name, db.fields)
     
