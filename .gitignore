@@ -2,3 +2,7 @@ pyenv/
 *.pyc
 .pytest_cache/
 *.db
+node_modules/
+.clever.json
+package-lock.json
+package.json
