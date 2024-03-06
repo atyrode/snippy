@@ -15,6 +15,7 @@ STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
 DB_PATH      = os.path.join(PROJECT_ROOT, 'snippy.db')
 
 DOMAIN_NAME  = "http://vite.lol/"
+SHORT_URL    = DOMAIN_NAME[7:] # without the http://
 
 ## CORE LOGIC ##
 
@@ -77,8 +78,8 @@ def decode_url(url: str) -> dict:
         
     if url.startswith(DOMAIN_NAME):
         url = url[len(DOMAIN_NAME):]
-    elif url.startswith(DOMAIN_NAME[7:]):
-        url = url[len(DOMAIN_NAME[7:]):]
+    elif url.startswith(SHORT_URL):
+        url = url[len(SHORT_URL):]
         
     if url == "":
         return {"error": "No URL provided"}
@@ -109,14 +110,16 @@ def determine_what_to_do(url: str):
         dict: A JSON response containing the original URL or the shortened one
     """
         
-    if url.startswith(DOMAIN_NAME):
+    if url.startswith(DOMAIN_NAME) or url.startswith(SHORT_URL):
         return RedirectResponse(f"/decode?url={url}")
     else:
         return RedirectResponse(f"/encode?url={url}")
     
-@app.get("/redirect/")
 @app.get("/{url}")
-@app.get(f"/{DOMAIN_NAME}" + "{url}")
+@app.get("/redirect/" + DOMAIN_NAME + "{url}")
+@app.get("/redirect/" + SHORT_URL + "{url}")
+@app.get("/" + DOMAIN_NAME + "{url}")
+@app.get("/" + SHORT_URL + "{url}")
 def redirect_url(url: str) -> dict:
     """Redirects the user to the original URL from the shortened string
 
