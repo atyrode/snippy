@@ -35,7 +35,7 @@ displayTitle();
 
 
 async function resultSlide(uid) {
-    let snipResult = document.getElementById('snip_result');
+    let viteResult = document.getElementById('vite_result');
 
     function resetTransform() {
         if (!first_time) {
@@ -44,20 +44,20 @@ async function resultSlide(uid) {
     }
 
     if (!first_time) {
-        snipResult.classList.remove('slide');
-        void snipResult.offsetWidth;
+        viteResult.classList.remove('slide');
+        void viteResult.offsetWidth;
     } else {
         first_time = false;
     }
 
-    snipResult.addEventListener('animationend', resetTransform, {once: true})
-    snipResult.classList.add('slide');
+    viteResult.addEventListener('animationend', resetTransform, {once: true})
+    viteResult.classList.add('slide');
 
-    snipResult.addEventListener('click', function() {
+    viteResult.addEventListener('click', function() {
         window.location.href = `/${uid}`});
     
     let url = uid.substring(7);
-    snipResult.innerHTML = url;
+    viteResult.innerHTML = url;
 }
 
 async function showResult(ev) {

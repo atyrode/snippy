@@ -47,7 +47,7 @@ body, html {
     
 }
 
-#snip_result {
+#vite_result {
     position: absolute;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 80px;
@@ -56,7 +56,7 @@ body, html {
     color: rgb(214, 98, 179);
 }
 
-#snip_result:hover{
+#vite_result:hover{
     color:rgb(161, 151, 247);
 }
 
