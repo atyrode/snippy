@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from ..database import DbManager, SnippyDB
+from ..database import DbManager, ViteDB
 
 @pytest.fixture(autouse=True)
 def run_after_each_test():
@@ -89,22 +89,22 @@ def test_select():
         assert db.cursor.fetchall() == [(1, "test")]
 
 
-# Tests for SnippyDB
+# Tests for ViteDB
 
 def test_created_links_table():
-    with SnippyDB('test.db') as db:
+    with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
         assert (db.table_name,) in db.list_tables()
         
 def test_insert_link():
-    with SnippyDB('test.db') as db:
+    with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
         db.insert_link("https://www.wikipedia.org/")
         db.cursor.execute("SELECT * FROM links")
         assert db.cursor.fetchall() == [(1, "https://www.wikipedia.org/", 0)]
         
 def test_increment_clicks():
-    with SnippyDB('test.db') as db:
+    with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
         db.insert_link("https://www.wikipedia.org/")
         db.increment_clicks(1)
@@ -112,14 +112,14 @@ def test_increment_clicks():
         assert result == ("https://www.wikipedia.org/", 1)
         
 def test_select_link():
-    with SnippyDB('test.db') as db:
+    with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
         db.insert_link("https://www.wikipedia.org/")
         result = db.select_link(1)
         assert result == ("https://www.wikipedia.org/", 0)
         
 def test_get_row_count():
-    with SnippyDB('test.db') as db:
+    with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
         assert db.get_row_count() == 0
         db.insert_link("https://www.wikipedia.org/")

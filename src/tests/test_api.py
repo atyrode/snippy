@@ -9,11 +9,11 @@ api.DB_PATH = "test.db"
 DB_PATH = api.DB_PATH
 
 from src.api import app, DOMAIN_NAME 
-from database import SnippyDB
+from database import ViteDB
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    with SnippyDB(DB_PATH) as db: # Creates the database
+    with ViteDB(DB_PATH) as db: # Creates the database
         db.create_table(db.table_name, db.fields)
     yield
     os.remove(DB_PATH)
@@ -22,7 +22,7 @@ def test_db_created():
     assert os.path.exists(DB_PATH)
 
 def test_created_links_table():
-    with SnippyDB(DB_PATH) as db:
+    with ViteDB(DB_PATH) as db:
         assert ("links",) in db.list_tables()
 
 def test_boilerplate():

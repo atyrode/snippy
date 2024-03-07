@@ -118,8 +118,8 @@ class DbManager:
         result = self.exec_get(sql, params=condition_values, all=all)
         return result
     
-class SnippyDB(DbManager):
-    """Database manager for the Snippy application.
+class ViteDB(DbManager):
+    """Database manager for the Vite! application.
     
     This class extends the `DbManager` class and adds specific methods
     to handle the `links` table.

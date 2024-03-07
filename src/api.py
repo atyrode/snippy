@@ -6,13 +6,13 @@ from fastapi.staticfiles import StaticFiles
 
 from .charset import URLCharset
 from .codec import Codec
-from .database import SnippyDB
+from .database import ViteDB
 
 ## CONSTANTS ##
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
-DB_PATH      = os.path.join(PROJECT_ROOT, 'data', 'snippy.db')
+DB_PATH      = os.path.join(PROJECT_ROOT, 'data', 'vite.db')
 
 DOMAIN_NAME  = "http://vite.lol/"
 SHORT_URL    = DOMAIN_NAME[7:] # without the http://
@@ -26,7 +26,7 @@ app         = FastAPI(docs_url="/docs/")
 
 # Create the database if it doesn't exist and the links table
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-with SnippyDB(DB_PATH) as db:
+with ViteDB(DB_PATH) as db:
     db.create_table(db.table_name, db.fields)
     
 # "/static/" avoids collisions with a possible /static generated path in the future
@@ -52,7 +52,7 @@ def encode_url(url: str) -> dict:
     if url == "":
         return {"error": "No URL provided"}
     
-    with SnippyDB(DB_PATH) as db:
+    with ViteDB(DB_PATH) as db:
         row_count = db.get_row_count()
         
     unique_id: int = row_count + 1
@@ -60,7 +60,7 @@ def encode_url(url: str) -> dict:
     
     shortened_url: str = f"{DOMAIN_NAME}{encoded_uid}"
     
-    with SnippyDB(DB_PATH) as db:
+    with ViteDB(DB_PATH) as db:
         db.insert_link(url)
     
     return {"url": shortened_url}
@@ -90,7 +90,7 @@ def decode_url(url: str) -> dict:
         return {"error": "Not a valid URL"}
     
     decoded_id: int = codec.decode(url)
-    with SnippyDB(DB_PATH) as db:
+    with ViteDB(DB_PATH) as db:
         result = db.select_link(decoded_id)
     
     if not isinstance(result, tuple):
@@ -135,7 +135,7 @@ def redirect_url(url: str) -> dict:
     
     original_url = decode_result["url"]
         
-    with SnippyDB(DB_PATH) as db:
+    with ViteDB(DB_PATH) as db:
         decoded_id: int = codec.decode(url)
         db.increment_clicks(decoded_id)
     
