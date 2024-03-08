@@ -12,11 +12,20 @@ git clone git@github.com:atyrode/vite.git
 cd vite
 ```
 
-2. Using Python 3.9 or up, run:
+2. Create a .env file containing the keys VITE_PROTOCOL & VITE_HOST
+ with your prefered values (e.g below):
+```
+VITE_PROTOCOL=https
+VITE_HOST=vite.lol
+```
+
+3. Using Python 3.9 or up, run:
 ```shell
 pip install -r requirements.txt
 python3 start.py
 ```
+
+4. Voilà! As a French person, would say: "c'est allé [vite, lol](http://vite.lol/)"
 
 # Then what?
 
@@ -52,8 +61,6 @@ Redirection is an endpoint that can explicitly be called with `/redirect/` or im
 
 If the shortened link points on text, it will return a JSON response containing a `text` key.
 If the shortened link points to an URL, it will redirect you there.
-
-3. Voilà! As a French person, would say: "c'est allé [vite, lol](http://vite.lol/)"
 
 # And now?
 

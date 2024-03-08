@@ -18,6 +18,12 @@ def run_around_tests():
     yield
     os.remove(DB_PATH)
     
+def test_ensure_protocol():
+    assert api.PROTOCOL != ""
+
+def test_ensure_host():
+    assert api.HOST != ""
+    
 def test_db_created():
     assert os.path.exists(DB_PATH)
 

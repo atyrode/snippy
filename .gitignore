@@ -7,3 +7,4 @@ node_modules/
 .clever.json
 package-lock.json
 package.json
+.env

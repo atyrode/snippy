@@ -1,7 +1,7 @@
 import os
 import re
-from typing import Union
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,14 +10,25 @@ from .charset import URLCharset
 from .codec import Codec
 from .database import ViteDB
 
+load_dotenv()
+
 ## CONSTANTS ##
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
 DB_PATH      = os.path.join(PROJECT_ROOT, 'data', 'vite.db')
 
-DOMAIN_NAME  = "https://vite.lol/"
-SHORT_URL    = DOMAIN_NAME[8:] # without the https://
+if "VITE_PROTOCOL" not in os.environ or "VITE_HOST" not in os.environ:
+    raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required in .env file at project root")
+
+PROTOCOL     = os.environ["VITE_PROTOCOL"]
+HOST         = os.environ["VITE_HOST"]
+
+if not PROTOCOL or not HOST:
+    raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required to be non empty strings in .env file at project root")
+
+DOMAIN_NAME  = f"{PROTOCOL}://{HOST}/"
+SHORT_URL    = HOST[8:] # without the https://
 
 ## CORE LOGIC ##
 
