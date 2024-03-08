@@ -3,7 +3,7 @@ import re
 from urllib.parse import urlparse
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -36,7 +36,7 @@ if not PROTOCOL or not HOST:
     raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required to be non empty strings in .env file at project root or in environment variables.")
 
 DOMAIN_NAME  = f"{PROTOCOL}://{HOST}/"
-SHORT_URL    = DOMAIN_NAME[8:] # without the https://
+SHORT_URL    = DOMAIN_NAME[len(PROTOCOL) + len("://"):]
 
 ## CORE LOGIC ##
 
@@ -174,4 +174,4 @@ def redirect_url(url: str) -> RedirectResponse:
     if not is_absolute:
         original_url = f"https://{original_url}"
     
-    return RedirectResponse(original_url, status_code=301)
+    return RedirectResponse(original_url, status_code=status.HTTP_301_MOVED_PERMANENTLY)

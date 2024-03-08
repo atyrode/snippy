@@ -16,7 +16,7 @@ cd vite
  with your prefered values (e.g. below) or set them as environment variables:
 ```
 VITE_PROTOCOL=https
-VITE_HOST=your.domain
+VITE_HOST=localhost:8080
 ```
 
 3. Using Python 3.9 or up, run:
@@ -32,7 +32,7 @@ python3 start.py
 **vite!** is a [FastAPI](https://fastapi.tiangolo.com/) based API that serves 4 different endpoints to get shortened links on URL or text value:
 
 ### - /encode
-Takes in a `value` argument (as `/encode?value=`) that can be an URL or text and returns a JSON response containing an `url` key of the format: `https://your.domain/` followed by a unique ID.
+Takes in a `value` argument (as `/encode?value=`) that can be an URL or text and returns a JSON response containing an `url` key of the format: `https://localhost:8080/` followed by a unique ID.
 
 > **Note**: The results of the encoding are predictable and not obfuscated.
 > This lets **vite!** benefits from very shorts URL for a good amount of encoding ⚡
@@ -41,8 +41,8 @@ Takes in a `value` argument (as `/encode?value=`) that can be an URL or text and
 ### - /decode
 Takes in an `url` argument (as `/decode?url=`) that can be of the following three formats:
 
-- `https://your.domain/aB5f`
-- `your.domain/aB5f`
+- `https://localhost:8080/aB5f`
+- `localhost:8080/aB5f`
 - `aB5f`
 
 And returns a JSON response containing a `value` (the original encoded URL or text) as well as a `clicks` key. `clicks` represent the amount of time your link was used by `/redirect` (refer below)
@@ -55,8 +55,8 @@ Takes in a `query` argument (as `/determine?query=`) and will attempt to redirec
 ### - /redirect/
 Redirection is an endpoint that can explicitly be called with `/redirect/` or implicitly on `/` that can be followed by the three following format:
 
-- `https://your.domain/aB5f`
-- `your.domain/aB5f`
+- `https://localhost:8080/aB5f`
+- `localhost:8080/aB5f`
 - `aB5f`
 
 If the shortened link points on text, it will return a JSON response containing a `text` key.
