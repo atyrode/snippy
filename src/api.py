@@ -16,17 +16,22 @@ load_dotenv()
 ## CONSTANTS ##
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
 DB_PATH      = "sqlite:///" + os.path.join(PROJECT_ROOT, 'data', 'vite.db')
+DOTENV_PATH  = os.path.join(PROJECT_ROOT, '.env')
 
-if "VITE_PROTOCOL" not in os.environ or "VITE_HOST" not in os.environ:
-    raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required in .env file at project root")
+# Load environment variables from .env file if it exists
+# Otherwise, they should be set in the environment variables in a production
+# environment
+if os.path.exists(DOTENV_PATH):
+    load_dotenv(DOTENV_PATH)
 
-PROTOCOL     = os.environ["VITE_PROTOCOL"]
-HOST         = os.environ["VITE_HOST"]
+PROTOCOL     = os.getenv("VITE_PROTOCOL")
+HOST         = os.getenv("VITE_HOST")
 
 if not PROTOCOL or not HOST:
-    raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required to be non empty strings in .env file at project root")
+    raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required to be non empty strings in .env file at project root or in environment variables.")
 
 DOMAIN_NAME  = f"{PROTOCOL}://{HOST}/"
 SHORT_URL    = DOMAIN_NAME[8:] # without the https://
