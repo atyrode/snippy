@@ -27,7 +27,7 @@ HOST         = os.environ["VITE_HOST"]
 if not PROTOCOL or not HOST:
     raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required to be non empty strings in .env file at project root")
 
-DOMAIN_NAME  = f"{PROTOCOL}:///{HOST}/"
+DOMAIN_NAME  = f"{PROTOCOL}://{HOST}/"
 SHORT_URL    = DOMAIN_NAME[8:] # without the https://
 
 ## CORE LOGIC ##
