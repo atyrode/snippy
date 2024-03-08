@@ -96,37 +96,30 @@ def test_created_links_table():
         db.create_table(db.table_name, db.fields)
         assert (db.table_name,) in db.list_tables()
         
-def test_insert_link():
+def test_insert_value():
     with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
-        db.insert_link("https://www.wikipedia.org/")
+        db.insert_value("https://www.wikipedia.org/")
         db.cursor.execute("SELECT * FROM links")
         assert db.cursor.fetchall() == [(1, "https://www.wikipedia.org/", 0)]
+
+def test_insert_value_returns_id():
+    with ViteDB('test.db') as db:
+        db.create_table(db.table_name, db.fields)
+        result = db.insert_value("https://www.wikipedia.org/")
+        assert result == 1
         
 def test_increment_clicks():
     with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
-        db.insert_link("https://www.wikipedia.org/")
+        db.insert_value("https://www.wikipedia.org/")
         db.increment_clicks(1)
-        result = db.select_link(1)
+        result = db.get_value(1)
         assert result == ("https://www.wikipedia.org/", 1)
         
-def test_select_link():
+def test_get_value():
     with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
-        db.insert_link("https://www.wikipedia.org/")
-        result = db.select_link(1)
+        db.insert_value("https://www.wikipedia.org/")
+        result = db.get_value(1)
         assert result == ("https://www.wikipedia.org/", 0)
-        
-def test_get_row_count():
-    with ViteDB('test.db') as db:
-        db.create_table(db.table_name, db.fields)
-        assert db.get_row_count() == 0
-        db.insert_link("https://www.wikipedia.org/")
-        assert db.get_row_count() == 1
-        db.insert_link("https://www.wikipedia.org/")
-        assert db.get_row_count() == 2
-        db.delete("links", ("id",), (1,))
-        assert db.get_row_count() == 1
-        db.delete("links", ("id",), (2,))
-        assert db.get_row_count() == 0

@@ -1,4 +1,6 @@
 import os
+import re
+from typing import Union
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, FileResponse
@@ -14,8 +16,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
 DB_PATH      = os.path.join(PROJECT_ROOT, 'data', 'vite.db')
 
-DOMAIN_NAME  = "http://vite.lol/"
-SHORT_URL    = DOMAIN_NAME[7:] # without the http://
+DOMAIN_NAME  = "https://vite.lol/"
+SHORT_URL    = DOMAIN_NAME[8:] # without the https://
 
 ## CORE LOGIC ##
 
@@ -39,82 +41,81 @@ def read_root() -> dict:
     return FileResponse(f"{STATIC_PATH}/index.html")
 
 @app.get("/encode")
-def encode_url(url: str) -> dict:
-    """Encodes an URL to a short string
+def encode_value(value: str) -> dict:
+    """Encodes an URL or text value to a shortened URL.
 
     Args:
-        url (str): The URL to encode
+        value (str): The URL or text to encode
 
     Returns:
-        dict: A JSON response containing the encoded URL
+        dict: A JSON response containing the encoded value in the 'url' key
     """
         
-    if url == "":
-        return {"error": "No URL provided"}
+    if value == "":
+        return {"error": "No URL or text provided"}
     
     with ViteDB(DB_PATH) as db:
-        row_count = db.get_row_count()
+        unique_id: int = db.insert_value(value)
         
-    unique_id: int = row_count + 1
     encoded_uid: str = codec.encode(unique_id)
     
     shortened_url: str = f"{DOMAIN_NAME}{encoded_uid}"
-    
-    with ViteDB(DB_PATH) as db:
-        db.insert_link(url)
     
     return {"url": shortened_url}
 
 
 @app.get("/decode")
 def decode_url(url: str) -> dict:
-    """Decodes a short string to its original URL
+    """Decodes a shortened URL to its original URL or text value.
 
     Args:
-        url (str): The URL to decode
+        url (str): The shortened URL to decode
 
     Returns:
-        dict: A JSON response containing the original URL and the number of clicks
+        dict: A JSON response containing the original value as the 'value' key
+        and the number of redirection on the shortened URL as the 'clicks' key
     """
-        
-    if url.startswith(DOMAIN_NAME):
-        url = url[len(DOMAIN_NAME):]
-    elif url.startswith(SHORT_URL):
-        url = url[len(SHORT_URL):]
-        
-    if url == "":
+    
+    # We keep only the part after the domain name using a regex pattern
+    unique_id = re.sub(rf"{DOMAIN_NAME}|{SHORT_URL}", "", url)
+
+    if unique_id == "":
         return {"error": "No URL provided"}
-    elif url == "0": # There's no row id 0, so there can't be a shortened URL for it
-        return {"url": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
-    elif url_charset.validate(url) == False:
+    elif unique_id == "0": # There's no row id 0, so there can't be a shortened URL for it
+        return {"value": "https://en.wikipedia.org/wiki/0#Computer_science", "clicks": -1}
+    elif url_charset.validate(unique_id) == False:
         return {"error": "Not a valid URL"}
     
-    decoded_id: int = codec.decode(url)
+    decoded_uid: int = codec.decode(unique_id)
+    
     with ViteDB(DB_PATH) as db:
-        result = db.select_link(decoded_id)
+        result = db.get_value(decoded_uid)
     
     if not isinstance(result, tuple):
-        return {"error": "Not a valid URL"}
+        return {"error": "No such shortened URL found"}
     else:
         original_url, clicks = result
     
-    return {"url": original_url, "clicks": clicks}
+    return {"value": original_url, "clicks": clicks}
 
 @app.get("/determine")
-def determine_what_to_do(url: str):
-    """Determines if the URL is a shortened one or a regular one
+def determine_what_to_do(query: str) -> RedirectResponse:
+    """Determines if the value is a shortened URL to decode or an URL/text value
+    to decode.
     
     Args:
-        url (str): The URL to determine
+        value (str): The value to determine the action to take on
     
     Returns:
-        dict: A JSON response containing the original URL or the shortened one
+        dict: A JSON response of the /decode or /encode endpoint with their
+        respective keys and values depending on the input value.
     """
-        
-    if url.startswith(DOMAIN_NAME) or url.startswith(SHORT_URL):
-        return RedirectResponse(f"/decode?url={url}")
+    
+    # Check if it looks like a shortened URL
+    if query.startswith(DOMAIN_NAME) or query.startswith(SHORT_URL):
+        return RedirectResponse(f"/decode?url={query}")
     else:
-        return RedirectResponse(f"/encode?url={url}")
+        return RedirectResponse(f"/encode?value={query}")
     
 @app.get("/redirect/" + DOMAIN_NAME + "{url}")
 @app.get("/redirect/" + SHORT_URL + "{url}")
@@ -122,25 +123,32 @@ def determine_what_to_do(url: str):
 @app.get("/" + DOMAIN_NAME + "{url}")
 @app.get("/" + SHORT_URL + "{url}")
 @app.get("/{url}")
-def redirect_url(url: str) -> dict:
-    """Redirects the user to the original URL from the shortened string
+def redirect_url(url: str) -> RedirectResponse:
+    """Redirects the user to the original URL or display the text computed 
+    from the received shortened string.
 
     Args:
-        url (str): The short string to decode and redirect to
+        url (str): The shortened url to decode and redirect to
+        
+    Returns:
+        RedirectResponse: A RedirectResponse to the original URL or
+        a display of the text value that was shortened.
     """
     
     decode_result = decode_url(url)
-    
+        
     if "error" in decode_result.keys():
         return decode_result
     
-    original_url = decode_result["url"]
-        
+    original_url = decode_result["value"]
+    
+    is_url = codec.is_value_url(original_url)
+    
     with ViteDB(DB_PATH) as db:
         decoded_id: int = codec.decode(url)
         db.increment_clicks(decoded_id)
-    
-    if not original_url.startswith("http"):
-        original_url = "http://" + original_url
         
+    if not is_url:
+        return RedirectResponse(f"/decode?url={url}")
+    
     return RedirectResponse(original_url)

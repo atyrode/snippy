@@ -130,32 +130,26 @@ class ViteDB(DbManager):
         self.table_name = "links"
         
         self.id_key = "id"
-        self.url_key = "url"
+        self.value_key = "value"
         self.clicks_key = "clicks"
         
         self.fields = {
             f"{self.id_key}": "INTEGER PRIMARY KEY",
-            f"{self.url_key}": "TEXT NOT NULL",
+            f"{self.value_key}": "TEXT NOT NULL",
             f"{self.clicks_key}": "INTEGER DEFAULT 0"
         }
-        
-    def get_row_count(self) -> Optional[int]:
-        """Returns the number of rows in the main table."""
-        
-        sql = f"SELECT COUNT(*) FROM {self.table_name}"
-        
-        result = self.exec_get(sql, params=tuple(), all=False)
-        return None if result is None else result[0]
     
-    def insert_link(self, url: str) -> None:
-        """Inserts a new link in the database."""
+    def insert_value(self, value: str) -> int:
+        """Inserts a new URL or text value in the database and returns the row ID"""
         
         self.insert(self.table_name, 
-                    fields=(self.url_key,), 
-                    values=(url,))
+                    fields=(self.value_key,), 
+                    values=(value,))
+        
+        return self.cursor.lastrowid
         
     def increment_clicks(self, id: int) -> None:
-        """Increments the number of clicks for a given link."""
+        """Increments the number of clicks for a given shortened link ID."""
         
         # TODO: It seems like we can't have proper SQL injection protection for
         # this usecase, using self.update passes the click+1 as a string
@@ -163,12 +157,12 @@ class ViteDB(DbManager):
 
         self.exec_commit(sql, params=(id,))
         
-    def select_link(self, id: int) -> Optional[Tuple]:
-        """Returns a link from the database based on its id."""
+    def get_value(self, id: int) -> Optional[Tuple]:
+        """Returns an URL or text value from the database based on its id."""
         
         result = self.select(
             table_name = self.table_name, 
-            fields     = (self.url_key, self.clicks_key), 
+            fields     = (self.value_key, self.clicks_key), 
             conditions = (self.id_key,), 
             condition_values = (id,), 
             all        = False

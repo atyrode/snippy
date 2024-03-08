@@ -1,3 +1,5 @@
+import re
+
 from dataclasses import dataclass
 
 from .charset import URLCharset
@@ -19,6 +21,12 @@ class Codec():
     @property
     def _base(self) -> int:
         return len(self.charset)
+    
+    def is_value_url(self, value: str) -> bool:
+        """Returns True if the value matches the URL regex pattern.
+        False means the value should be treated as text."""
+        regex = r'[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)'
+        return re.match(regex, value) is not None
     
     def encode(self, id: int) -> str:
         encoded: str    = str()
