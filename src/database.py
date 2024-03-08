@@ -157,7 +157,7 @@ class ViteDB(DbManager):
 
         self.exec_commit(sql, params=(id,))
         
-    def select_value(self, id: int) -> Optional[Tuple]:
+    def get_value(self, id: int) -> Optional[Tuple]:
         """Returns an URL or text value from the database based on its id."""
         
         result = self.select(

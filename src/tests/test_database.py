@@ -114,12 +114,12 @@ def test_increment_clicks():
         db.create_table(db.table_name, db.fields)
         db.insert_value("https://www.wikipedia.org/")
         db.increment_clicks(1)
-        result = db.select_value(1)
+        result = db.get_value(1)
         assert result == ("https://www.wikipedia.org/", 1)
         
-def test_select_link():
+def test_get_value():
     with ViteDB('test.db') as db:
         db.create_table(db.table_name, db.fields)
         db.insert_value("https://www.wikipedia.org/")
-        result = db.select_value(1)
+        result = db.get_value(1)
         assert result == ("https://www.wikipedia.org/", 0)
