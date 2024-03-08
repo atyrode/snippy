@@ -46,21 +46,13 @@ class DbManager:
             self.session.rollback()
         else:
             self.session.commit()
-
-    def exec_commit(self, instance) -> None:
-        self.session.add(instance)
-        self.session.commit()
-    
-    def exec_get(self, query, all: bool = False):
-        if all:
-            return query(self.session).all()
-        return query(self.session).first()
         
     def insert_value(self, value: str) -> int:
         """Inserts a new URL or text value in the database and returns the row ID"""
 
         new_link = Link(value=value)
-        self.exec_commit(new_link)
+        self.session.add(new_link)
+        self.session.commit()
         return new_link.id
     
     def increment_clicks(self, link_id: int) -> None:

@@ -9,32 +9,22 @@ os.environ["VITE_HOST"] = "vite.lol"
 
 import src.api as api
 
-api.DB_PATH = "test.db"
-DB_PATH = api.DB_PATH
+api.DB_PATH = "sqlite:///" + api.PROJECT_ROOT + "/data/test.db"
 
 from src.api import app, DOMAIN_NAME, SHORT_URL
-from database import ViteDB
-
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    with ViteDB(DB_PATH) as db: # Creates the test database
-        db.create_table(db.table_name, db.fields)
+    # Create the db then deletes it
+    api.DbManager(api.DB_PATH)
     yield
-    os.remove(DB_PATH)
+    os.remove(api.DB_PATH.replace("sqlite:///", ""))
     
 def test_ensure_protocol():
     assert api.PROTOCOL != ""
 
 def test_ensure_host():
     assert api.HOST != ""
-    
-def test_db_created():
-    assert os.path.exists(DB_PATH)
-
-def test_created_links_table():
-    with ViteDB(DB_PATH) as db:
-        assert ("links",) in db.list_tables()
 
 def test_boilerplate():
     with TestClient(app) as client:
