@@ -1,5 +1,6 @@
 import os
 import re
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -144,6 +145,8 @@ def redirect_url(url: str) -> RedirectResponse:
         a display of the text value that was shortened.
     """
     
+    print(f"entering redirect")
+    
     decode_result = decode_url(url)
 
     if "error" in decode_result.keys():
@@ -160,10 +163,9 @@ def redirect_url(url: str) -> RedirectResponse:
     if not is_url:
          return RedirectResponse(f"/decode?url={url}")
      
-    # TODO: This implementation is not ideal, but I couldn't figure a better
-    # way to handle the protocol addition to the URL if it's missing
-    # and it would fail to properly redirect out of vite in this case
-    if not original_url.startswith("https://") and not original_url.startswith("http://"):
-        original_url = "https://" + original_url
-
-    return RedirectResponse(original_url)
+    # If the URL is not absolute, we add the https:// prefix
+    is_absolute = urlparse(original_url).netloc != ""
+    if not is_absolute:
+        original_url = f"https://{original_url}"
+    
+    return RedirectResponse(original_url, status_code=301)
