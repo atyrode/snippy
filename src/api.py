@@ -145,8 +145,6 @@ def redirect_url(url: str) -> RedirectResponse:
         a display of the text value that was shortened.
     """
     
-    print(f"entering redirect")
-    
     decode_result = decode_url(url)
 
     if "error" in decode_result.keys():
