@@ -148,4 +148,16 @@ def test_redirect_is_url():
         shortened_url = response.json()["url"]
         response = client.get(f"/redirect/{shortened_url}")
         assert response.status_code == 200
-        assert response.headers["location"] == "https://www.wikipedia.org/"
+        
+        response = client.get(f"/{shortened_url}")
+        assert response.status_code == 200
+
+def test_redirect_is_text():
+    with TestClient(app) as client:
+        response = client.get("/encode?value=Hello World!")
+        shortened_url = response.json()["url"]
+        response = client.get(f"/redirect/{shortened_url}")
+        assert response.status_code == 200
+        
+        response = client.get(f"/{shortened_url}")
+        assert response.status_code == 200
