@@ -2,25 +2,6 @@
 
 ✂️ Sharpen your links with **vite!** API.
 
-# What?
-
-**vite!** is a [FastAPI](https://fastapi.tiangolo.com/) based API that serves 4 different endpoints:
-
-- `/encode?url=`
-- `/decode?url=` 
-
-Both of these takes an URL as argument and respectively `encode` or `decode` and return a JSON containing a 'url' key. It is not meant to be private or obfuscated, it `decode` into its database row unique id count and `encode` on a base 62.
-
-- `/determine?url=`
-
-`determine` will attempt at 'guessing' whether the request is trying to ``encode`` or ``decode`` an URL and redirect accordingly.
-
-Finally, through multiple endpoints formats:
-
-- `/redirect/`
-
-As `/redirect/` then a shortened URL, it's unique ID, or simply by appending the unique ID to the root `/` endpoint will redirect you to where an `encoded` links point to.
-
 # How?
 
 To get started and self host your **vite!** API, follow these steps:
@@ -36,6 +17,41 @@ cd vite
 pip install -r requirements.txt
 python3 start.py
 ```
+
+# Then what?
+
+**vite!** is a [FastAPI](https://fastapi.tiangolo.com/) based API that serves 4 different endpoints to get shortened links on URL or text value:
+
+### - /encode
+Takes in a `value` argument (as `/encode?value=`) that can be an URL or text and returns a JSON response containing an `url` key of the format: `https://vite.lol/` followed by a unique ID.
+
+> **Note**: The results of the encoding are predictable and not obfuscated.
+> This lets **vite!** benefits from very shorts URL for a good amount of encoding ⚡
+
+
+### - /decode
+Takes in an `url` argument (as `/decode?url=`) that can be of the following three formats:
+
+- `https://vite.lol/aB5f`
+- `vite.lol/aB5f`
+- `aB5f`
+
+And returns a JSON response containing a `value` (the original encoded URL or text) as well as a `clicks` key. `clicks` represent the amount of time your link was used by `/redirect` (refer below)
+
+
+### - /determine
+Takes in a `query` argument (as `/determine?query=`) and will attempt to redirect your query on the `/encode` or `/decode` endpoint and will return their respective result JSON.
+
+
+### - /redirect/
+Redirection is an endpoint that can explicitly be called with `/redirect/` or implicitly on `/` that can be followed by the three following format:
+
+- `https://vite.lol/aB5f`
+- `vite.lol/aB5f`
+- `aB5f`
+
+If the shortened link points on text, it will return a JSON response containing a `text` key.
+If the shortened link points to an URL, it will redirect you there.
 
 3. Voilà! As a French person, would say: "c'est allé [vite, lol](http://vite.lol/)"
 
