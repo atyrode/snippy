@@ -3,6 +3,10 @@ import pytest
 
 from fastapi.testclient import TestClient
 
+# Set VITE_PROTOCOL and VITE_HOST environment variables
+os.environ["VITE_PROTOCOL"] = "https"
+os.environ["VITE_HOST"] = "vite.lol"
+
 import src.api as api
 
 api.DB_PATH = "test.db"
@@ -10,6 +14,7 @@ DB_PATH = api.DB_PATH
 
 from src.api import app, DOMAIN_NAME, SHORT_URL
 from database import ViteDB
+
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
