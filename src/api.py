@@ -125,7 +125,7 @@ def determine_what_to_do(query: str) -> RedirectResponse:
         return RedirectResponse(f"/decode?url={query}")
     else:
         return RedirectResponse(f"/encode?value={query}")
-    
+
 @app.get("/redirect/" + DOMAIN_NAME + "{url}")
 @app.get("/redirect/" + SHORT_URL + "{url}")
 @app.get("/redirect/{url}")
@@ -145,19 +145,25 @@ def redirect_url(url: str) -> RedirectResponse:
     """
     
     decode_result = decode_url(url)
-        
+
     if "error" in decode_result.keys():
         return decode_result
-    
+
     original_url = decode_result["value"]
-    
+
     is_url = codec.is_value_url(original_url)
     
     with DbManager(DB_PATH) as db:
         decoded_id: int = codec.decode(url)
         db.increment_clicks(decoded_id)
-        
+
     if not is_url:
-        return RedirectResponse(f"/decode?url={url}")
-    
+         return RedirectResponse(f"/decode?url={url}")
+     
+    # TODO: This implementation is not ideal, but I couldn't figure a better
+    # way to handle the protocol addition to the URL if it's missing
+    # and it would fail to properly redirect out of vite in this case
+    if not original_url.startswith("https://") and not original_url.startswith("http://"):
+        original_url = "https://" + original_url
+
     return RedirectResponse(original_url)
