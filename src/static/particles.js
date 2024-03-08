@@ -65,7 +65,7 @@ async function showResult(ev) {
     
     if (ev.key === "Enter") {
         let input = field.value;
-        let endpoint = `/encode?url=${input}`;
+        let endpoint = `/encode?value=${input}`;
 
         try {
             const response = await fetch(endpoint, {
