@@ -18,7 +18,9 @@ load_dotenv()
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
-DB_PATH      = "sqlite:///" + os.path.join(PROJECT_ROOT, 'data', 'vite.db')
+DATA_PATH    = os.path.join(PROJECT_ROOT, 'data')
+DB_PATH      = "sqlite:///" + os.path.join(DATA_PATH, 'vite.db')
+
 DOTENV_PATH  = os.path.join(PROJECT_ROOT, '.env')
 
 # Load environment variables from .env file if it exists
@@ -43,8 +45,9 @@ url_charset = URLCharset(numeric=True, lowercase_ascii=True,
 codec       = Codec(charset=url_charset)
 app         = FastAPI(docs_url="/docs/")
 
+
 # Create the data folder if it doesn't exist, it will contain the database file
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+os.makedirs(DATA_PATH, exist_ok=True)
     
 # "/static/" avoids collisions with a possible /static generated path in the future
 app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
