@@ -28,7 +28,7 @@ To get started and self host your **vite!** API, follow these steps:
 1. First, git clone the project somewhere then `cd` into it.
 ```shell
 git clone git@github.com:atyrode/vite.git
-cd vite!
+cd vite
 ```
 
 2. Using Python 3.9 or up, run:
