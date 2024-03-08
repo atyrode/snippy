@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .charset import URLCharset
 from .codec import Codec
-from .database import ViteDB
+from .database import DbManager
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ load_dotenv()
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_PATH  = os.path.join(PROJECT_ROOT, 'src', 'static')
-DB_PATH      = os.path.join(PROJECT_ROOT, 'data', 'vite.db')
+DB_PATH      = "sqlite:///" + os.path.join(PROJECT_ROOT, 'data', 'vite.db')
 
 if "VITE_PROTOCOL" not in os.environ or "VITE_HOST" not in os.environ:
     raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required in .env file at project root")
@@ -27,7 +27,7 @@ HOST         = os.environ["VITE_HOST"]
 if not PROTOCOL or not HOST:
     raise ValueError("Environment variables VITE_PROTOCOL and VITE_HOST are required to be non empty strings in .env file at project root")
 
-DOMAIN_NAME  = f"{PROTOCOL}://{HOST}/"
+DOMAIN_NAME  = f"{PROTOCOL}:///{HOST}/"
 SHORT_URL    = DOMAIN_NAME[8:] # without the https://
 
 ## CORE LOGIC ##
@@ -37,10 +37,8 @@ url_charset = URLCharset(numeric=True, lowercase_ascii=True,
 codec       = Codec(charset=url_charset)
 app         = FastAPI(docs_url="/docs/")
 
-# Create the database if it doesn't exist and the links table
+# Create the data folder if it doesn't exist, it will contain the database file
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-with ViteDB(DB_PATH) as db:
-    db.create_table(db.table_name, db.fields)
     
 # "/static/" avoids collisions with a possible /static generated path in the future
 app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
@@ -65,7 +63,7 @@ def encode_value(value: str) -> dict:
     if value == "":
         return {"error": "No URL or text provided"}
     
-    with ViteDB(DB_PATH) as db:
+    with DbManager(DB_PATH) as db:
         unique_id: int = db.insert_value(value)
         
     encoded_uid: str = codec.encode(unique_id)
@@ -99,7 +97,7 @@ def decode_url(url: str) -> dict:
     
     decoded_uid: int = codec.decode(unique_id)
     
-    with ViteDB(DB_PATH) as db:
+    with DbManager(DB_PATH) as db:
         result = db.get_value(decoded_uid)
     
     if not isinstance(result, tuple):
@@ -155,7 +153,7 @@ def redirect_url(url: str) -> RedirectResponse:
     
     is_url = codec.is_value_url(original_url)
     
-    with ViteDB(DB_PATH) as db:
+    with DbManager(DB_PATH) as db:
         decoded_id: int = codec.decode(url)
         db.increment_clicks(decoded_id)
         

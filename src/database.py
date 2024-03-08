@@ -1,8 +1,20 @@
 import sqlite3
-from dataclasses import dataclass, field
-from typing import Optional, Type, Union, Tuple, List
-from types import TracebackType
 
+from sqlalchemy import create_engine, Column, String, Integer
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
+from typing import Optional, Tuple
+
+Base = declarative_base()
+
+class Link(Base):
+    __tablename__ = 'links'
+    
+    id = Column(Integer, primary_key=True)
+    value = Column(String, nullable=False)
+    clicks = Column(Integer, default=0)
+    
+    
 class DbManager:
     """Generic database class to handle sqlite3 database operations.
 
@@ -13,160 +25,56 @@ class DbManager:
     automatically closed when the block is exited. And if an exception
     occurs, the transaction will be rolled back.
     
-    The queries are protected against SQL injection by the `?` placeholder.
-    
+
     Args:
         db_path (str): Path to the database file.
     """
     
-    def __init__(self, db_path: str) -> None:
-        self.connection = sqlite3.connect(db_path)
-        self.cursor = self.connection.cursor()
+    def __init__(self, db_url: str) -> None:
+        self.engine = create_engine(db_url)
+        Base.metadata.create_all(self.engine)
+        self.session_factory = sessionmaker(bind=self.engine)
+        self.Session = scoped_session(self.session_factory)
     
-    def __enter__(self) -> 'DbManager':
+    def __enter__(self) -> Session:
+        self.session = self.Session()
         return self
 
-    def __exit__(self, 
-                 ext_type: Optional[Type[BaseException]],
-                 exc_value: Optional[BaseException], 
-                 traceback: Optional[TracebackType]
-                 ) -> None:
-        self.cursor.close()
-        if isinstance(exc_value, Exception):
-            self.rollback()
+    def __exit__(self, ext_type, exc_value, traceback) -> None:
+        self.Session.remove()
+        if exc_value:
+            self.session.rollback()
         else:
-            self.commit()
-        self.connection.close()
+            self.session.commit()
+
+    def exec_commit(self, instance) -> None:
+        self.session.add(instance)
+        self.session.commit()
     
-    def rollback(self) -> None:
-        self.connection.rollback()
-        
-    def commit(self) -> None:
-        self.connection.commit()
-    
-    def close(self) -> None:
-        self.connection.close()
-        
-    def exec_commit(self, query: str, params: tuple) -> None:
-        """Executes and commits a SQL query."""
-        
-        self.cursor.execute(query, params)
-        self.commit()
-        
-    def exec_get(self, query: str, params: tuple, all: bool) -> Union[Tuple, List[Tuple]]:
-        """Executes and commits a SQL query, and returns the result."""
-        
-        self.cursor.execute(query, params)
+    def exec_get(self, query, all: bool = False):
         if all:
-            return self.cursor.fetchall()
-        return self.cursor.fetchone()
-
-    def create_table(self, table_name: str, fields: dict) -> None:
-        """Creates a table in the database if it doesn't exist based
-        on a dictionary of fields and their types.
-        """
-        formatted_fields = ', '.join(
-            [f"{name} {field_type}"
-             for name, field_type
-             in fields.items()]
-        )
+            return query(self.session).all()
+        return query(self.session).first()
         
-        sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({formatted_fields})"
-        
-        self.exec_commit(sql, params=tuple())
-
-    def list_tables(self) -> list[Optional[tuple]]:
-        sql = f"SELECT name FROM sqlite_master WHERE type='table'"
-        
-        result = self.exec_get(sql, params=tuple(), all=True)
-        return result
-    
-    def insert(self, table_name: str, fields: tuple, values: tuple) -> None:
-        placeholders = ', '.join('?' * len(values))
-        
-        sql = f"INSERT INTO {table_name} ({', '.join(fields)}) VALUES ({placeholders})"
-        
-        self.exec_commit(sql, params=values)
-
-    def update(self, table_name: str, fields: tuple, values: tuple, conditions: tuple, condition_values: tuple) -> None:
-        set_clause = ', '.join([f"{field}=?" for field in fields])
-        
-        sql = f"UPDATE {table_name} SET {set_clause}"
-        
-        if conditions:
-            condition_clause = ' AND '.join([f"{condition}=?" for condition in conditions])
-            sql += f" WHERE {condition_clause}"
-        
-        self.exec_commit(sql, params=values + condition_values)
-
-    def delete(self, table_name: str, conditions: tuple, condition_values: tuple) -> None:
-        condition_clause = ' AND '.join([f"{condition}=?" for condition in conditions])
-        
-        sql = f"DELETE FROM {table_name} WHERE {condition_clause}"
-        
-        self.exec_commit(sql, params=condition_values)
-
-    def select(self, table_name: str, fields: tuple, conditions: tuple, condition_values: tuple, all: bool) -> Union[Tuple, List[Tuple]]:
-        fields_clause = ', '.join(fields)
-        
-        sql = f"SELECT {fields_clause} FROM {table_name}"
-        
-        if conditions:
-            condition_clause = ' AND '.join([f"{condition}=?" for condition in conditions])
-            sql += f" WHERE {condition_clause}"
-            
-        result = self.exec_get(sql, params=condition_values, all=all)
-        return result
-    
-class ViteDB(DbManager):
-    """Database manager for the Vite! application.
-    
-    This class extends the `DbManager` class and adds specific methods
-    to handle the `links` table.
-    """
-    
-    def __init__(self, db_path: str) -> None:
-        super().__init__(db_path)
-        self.table_name = "links"
-        
-        self.id_key = "id"
-        self.value_key = "value"
-        self.clicks_key = "clicks"
-        
-        self.fields = {
-            f"{self.id_key}": "INTEGER PRIMARY KEY",
-            f"{self.value_key}": "TEXT NOT NULL",
-            f"{self.clicks_key}": "INTEGER DEFAULT 0"
-        }
-    
     def insert_value(self, value: str) -> int:
         """Inserts a new URL or text value in the database and returns the row ID"""
-        
-        self.insert(self.table_name, 
-                    fields=(self.value_key,), 
-                    values=(value,))
-        
-        return self.cursor.lastrowid
-        
-    def increment_clicks(self, id: int) -> None:
+
+        new_link = Link(value=value)
+        self.exec_commit(new_link)
+        return new_link.id
+    
+    def increment_clicks(self, link_id: int) -> None:
         """Increments the number of clicks for a given shortened link ID."""
         
-        # TODO: It seems like we can't have proper SQL injection protection for
-        # this usecase, using self.update passes the click+1 as a string
-        sql = f"UPDATE {self.table_name} SET {self.clicks_key}={self.clicks_key}+1 WHERE {self.id_key}=?"
-
-        self.exec_commit(sql, params=(id,))
-        
-    def get_value(self, id: int) -> Optional[Tuple]:
+        link = self.session.query(Link).filter(Link.id == link_id).first()
+        if link:
+            link.clicks += 1
+            self.session.commit()
+                
+    def get_value(self, link_id: int) -> Optional[Tuple]:
         """Returns an URL or text value from the database based on its id."""
-        
-        result = self.select(
-            table_name = self.table_name, 
-            fields     = (self.value_key, self.clicks_key), 
-            conditions = (self.id_key,), 
-            condition_values = (id,), 
-            all        = False
-        )
-        
-        return result
 
+        link = self.session.query(Link).filter(Link.id == link_id).first()
+        if link:
+            return link.value, link.clicks
+        return None
