@@ -56,7 +56,7 @@ async function resultSlide(uid) {
     viteResult.addEventListener('click', function() {
         window.location.href = `/${uid}`});
     
-    let url = uid.substring(7);
+    let url = uid.substring(8);
     viteResult.innerHTML = url;
 }
 
