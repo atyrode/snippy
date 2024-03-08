@@ -116,11 +116,12 @@ def determine_what_to_do(url: str):
     else:
         return RedirectResponse(f"/encode?url={url}")
     
-@app.get("/{url}")
 @app.get("/redirect/" + DOMAIN_NAME + "{url}")
 @app.get("/redirect/" + SHORT_URL + "{url}")
+@app.get("/redirect/{url}")
 @app.get("/" + DOMAIN_NAME + "{url}")
 @app.get("/" + SHORT_URL + "{url}")
+@app.get("/{url}")
 def redirect_url(url: str) -> dict:
     """Redirects the user to the original URL from the shortened string
 
