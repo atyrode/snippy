@@ -10,7 +10,7 @@ os.environ["VITE_HOST"] = "vite.lol"
 import src.api as api
 
 api.DB_PATH = "sqlite:///" + api.PROJECT_ROOT + "/data/test.db"
-os.mkdir(api.PROJECT_ROOT + "/data")
+os.makedirs(api.PROJECT_ROOT + "/data", exist_ok=True)
 
 from src.api import app, DOMAIN_NAME, SHORT_URL
 
