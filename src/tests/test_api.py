@@ -164,3 +164,9 @@ def test_redirect_is_text():
         
         response = client.get(f"/{shortened_url}")
         assert response.status_code == 200
+            
+def test_favicon():
+    with TestClient(app) as client:
+        response = client.get("/favicon.ico")
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("image/")
