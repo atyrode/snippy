@@ -106,6 +106,9 @@ def decode_url(url: str) -> dict:
     
     decoded_uid: int = codec.decode(unique_id)
     
+    if decoded_uid > 2 ** 63 - 1: # OverflowError: Python int too large to convert to SQLite INTEGER
+        return {"error": "No such shortened URL found"}
+    
     with DbManager(DB_PATH) as db:
         result = db.get_value(decoded_uid)
     
