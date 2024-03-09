@@ -54,6 +54,10 @@ app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
     
 ## API ENDPOINTS ##
 
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    return FileResponse(f"{STATIC_PATH}/favicon.ico")
+
 @app.get("/")
 def read_root() -> dict:
     return FileResponse(f"{STATIC_PATH}/index.html")
