@@ -51,7 +51,11 @@ os.makedirs(DATA_PATH, exist_ok=True)
     
 # "/static/" avoids collisions with a possible /static generated path in the future
 app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
-    
+
+def is_local_or_relative_url(url: str) -> bool:
+    """Determines if the input URL related to the domain name."""
+    return url.startswith(DOMAIN_NAME) or url.startswith(SHORT_URL)
+
 ## API ENDPOINTS ##
 
 @app.get("/")
@@ -71,6 +75,8 @@ def encode_value(value: str) -> dict:
         
     if value == "":
         return {"error": "No URL or text provided"}
+    elif is_local_or_relative_url(value):
+        return {"error": "Not a valid URL"}
     
     with DbManager(DB_PATH) as db:
         unique_id: int = db.insert_value(value)
