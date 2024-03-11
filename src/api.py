@@ -51,7 +51,11 @@ os.makedirs(DATA_PATH, exist_ok=True)
     
 # "/static/" avoids collisions with a possible /static generated path in the future
 app.mount("/static/", StaticFiles(directory=STATIC_PATH), name="static")
-    
+
+def is_local_or_relative_url(url: str) -> bool:
+    """Determines if the input URL related to the domain name."""
+    return url.startswith(DOMAIN_NAME) or url.startswith(SHORT_URL)
+
 ## API ENDPOINTS ##
 
 @app.get("/")
@@ -71,6 +75,8 @@ def encode_value(value: str) -> dict:
         
     if value == "":
         return {"error": "No URL or text provided"}
+    elif is_local_or_relative_url(value):
+        return {"error": f"You can't encode a {DOMAIN_NAME} URL."}
     
     with DbManager(DB_PATH) as db:
         unique_id: int = db.insert_value(value)
@@ -105,6 +111,9 @@ def decode_url(url: str) -> dict:
         return {"error": "Not a valid URL"}
     
     decoded_uid: int = codec.decode(unique_id)
+    
+    if decoded_uid > 2 ** 63 - 1: # OverflowError: Python int too large to convert to SQLite INTEGER
+        return {"error": "No such shortened URL found"}
     
     with DbManager(DB_PATH) as db:
         result = db.get_value(decoded_uid)
