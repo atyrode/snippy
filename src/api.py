@@ -76,7 +76,7 @@ def encode_value(value: str) -> dict:
     if value == "":
         return {"error": "No URL or text provided"}
     elif is_local_or_relative_url(value):
-        return {"error": "Not a valid URL"}
+        return {"error": f"You can't encode a {DOMAIN_NAME} URL."}
     
     with DbManager(DB_PATH) as db:
         unique_id: int = db.insert_value(value)
