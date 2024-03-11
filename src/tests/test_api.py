@@ -12,7 +12,7 @@ import src.api as api
 api.DB_PATH = "sqlite:///" + api.PROJECT_ROOT + "/data/test.db"
 os.makedirs(api.PROJECT_ROOT + "/data", exist_ok=True)
 
-from src.api import app, DOMAIN_NAME, SHORT_URL
+from src.api import app, DOMAIN_NAME, SHORT_URL, is_local_or_relative_url
 
 
 @pytest.fixture(autouse=True)
@@ -164,3 +164,26 @@ def test_redirect_is_text():
         
         response = client.get(f"/{shortened_url}")
         assert response.status_code == 200
+        
+def test_decode_overflows_handled():
+    with TestClient(app) as client:
+        response = client.get(f"/decode?url=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA") # <- This should overflow as the decoded_uid > 2 ** 63 - 1
+        assert response.status_code == 200
+        response = response.json()
+        assert "error" in response
+        assert response["error"] == "No such shortened URL found"
+
+def test_refuse_encode_local_or_relative():
+    with TestClient(app) as client:
+        assert is_local_or_relative_url(f"{DOMAIN_NAME}") == True
+        
+    with TestClient(app) as client:
+        response = client.get("/encode?value=https://vite.lol/")
+        assert response.status_code == 200
+        assert response.json() == {"error": f"You can't encode a {DOMAIN_NAME} URL."}
+        
+    with TestClient(app) as client:
+        response = client.get("/encode?value=vite.lol/")
+        assert response.status_code == 200
+        assert response.json() == {"error": f"You can't encode a {DOMAIN_NAME} URL."}
+    
