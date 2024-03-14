@@ -33,16 +33,15 @@ async function displayTitle() {
 
 displayTitle();
 
+function resetTransform() {
+    if (!first_time) {
+        this.style.transform = "translateY(0)";
+    }
+}
 
 async function resultSlide(uid) {
     let viteResult = document.getElementById('vite_result');
-
-    function resetTransform() {
-        if (!first_time) {
-            this.style.transform = "translateY(0)";
-        }
-    }
-
+    
     if (!first_time) {
         viteResult.classList.remove('slide');
         void viteResult.offsetWidth;
