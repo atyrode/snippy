@@ -1,0 +1,10 @@
+pyenv/
+*.pyc
+.pytest_cache/
+data/
+*.db
+node_modules/
+.clever.json
+package-lock.json
+package.json
+.env
